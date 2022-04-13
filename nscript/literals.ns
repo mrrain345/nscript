@@ -1,0 +1,10 @@
+true false null
+123 -123 0xFF 0b1010 0o744
+123.456 .456 .456 456. 0.0
+-123.456 -456. -0.0
+.456e12 123.456e12 456e12 456e-12 456e+12 -456e12 -456e+12 -456e-12
+"Hello world!" "Hello 'world'" "Hello \\ \n \t \"world\"!" 'Hello \n \t "world"' 'Hello \'wo\drld\''
+"hello
+  
+world"
+" \t\n\r(){}[],:=!<>.?+-*/%&|^~"

@@ -1,5 +1,5 @@
 use std::env;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 mod parser;
 
@@ -40,7 +40,7 @@ fn main() {
       println!("\nLength: {}", output.len());
 
       if remaining.input.len() > 0 {
-        println!("\nRemaining (len: {}):\n{}\n\n", remaining.input.len(), remaining.input)
+        println!("\nRemaining (len: {}):\n{}", remaining.input.len(), remaining.input)
       }
     }
     Err(err) => eprintln!("{}", &err),

@@ -2,11 +2,9 @@ use super::Token;
 use combine::parser::{char, range, choice, token};
 use combine::parser::Parser;
 use combine::stream::RangeStream;
-use combine::error::ParseError;
 
-pub fn integer<'a, I>() -> impl Parser<I, Output=Token> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+pub fn integer<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   // Parse a non decimal integer. (hex, octal, binary)
   let nondecimal = token::token('0').with(

@@ -2,11 +2,9 @@ use super::Token;
 use combine::parser::{char, choice, range, combinator};
 use combine::parser::Parser;
 use combine::stream::RangeStream;
-use combine::error::ParseError;
 
-pub fn number<'a, I>() -> impl Parser<I, Output=Token> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+pub fn number<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   // Parser for the exponent part of a number.
   let exp = (

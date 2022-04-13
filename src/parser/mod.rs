@@ -1,8 +1,7 @@
 use combine::parser::{char, choice, range, repeat, combinator};
 use combine::parser::{Parser, EasyParser};
-use combine::stream::{RangeStream};
-use combine::stream::position::{Stream, SourcePosition};
-use combine::error::ParseError;
+use combine::stream::RangeStream;
+use combine::stream::position::{SourcePosition, Stream};
 use combine::easy::Errors;
 
 mod keywords;
@@ -30,16 +29,14 @@ pub enum Token {
   Terminator,
 }
 
-pub fn parse<'a>(source: &'a str) -> Result<
-    (Vec<Token>, Stream<&str, SourcePosition>),
-    Errors<char, &str, SourcePosition>> {
-    
-  return tokenize().easy_parse(Stream::new(source));
+pub fn parse<'src>(source: &'src str) ->
+  Result<(Vec<Token>, Stream<&str, SourcePosition>), Errors<char, &str, SourcePosition>> {
+
+  tokenize().easy_parse(Stream::new(source))
 }
 
-fn tokenize<'a, I>() -> impl Parser<I, Output = Vec<Token>> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Token>> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   let tokens = choice::choice((
     number::number(),
@@ -54,13 +51,11 @@ fn tokenize<'a, I>() -> impl Parser<I, Output = Vec<Token>> + 'a
   ));
 
   let spaces = range::take_while(|c: char| c != '\n' && c.is_whitespace());
-  
   return repeat::sep_by(tokens, spaces);
 }
 
-fn literals<'a, I>() -> impl Parser<I, Output=Token> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+fn literals<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   let true_ = range::range("true").map(|_| Token::Boolean(true));
   let false_ = range::range("false").map(|_| Token::Boolean(false));
@@ -73,18 +68,16 @@ fn literals<'a, I>() -> impl Parser<I, Output=Token> + 'a
   ));
 }
 
-fn identifier<'a, I>() -> impl Parser<I, Output=Token> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+fn identifier<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
   
   range::take_while1(|c: char| c.is_alphanumeric() || c == '_').map(|s: &str| {
     Token::Identifier(String::from(s))
   })
 }
 
-fn terminator<'a, I>() -> impl Parser<I, Output=Token> + 'a
-  where I: RangeStream<Token=char, Range=&'a str> + 'a,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+fn terminator<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   range::take_while1(|c: char| c == ';' || c == '\n' || c.is_whitespace()).map(|_| {
     Token::Terminator

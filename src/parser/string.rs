@@ -2,11 +2,9 @@ use super::Token;
 use combine::parser::{char, repeat, token, choice};
 use combine::parser::Parser;
 use combine::stream::RangeStream;
-use combine::error::ParseError;
 
-pub fn escaped<'a, I>() -> impl Parser<I, Output=char>
-  where I: RangeStream<Token=char, Range=&'a str>,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+pub fn escaped<'src, I>() -> impl Parser<I, Output=char>
+  where I: RangeStream<Token=char, Range=&'src str> {
 
   return (char::char('\\'), token::any())
     .map(|(_, c)| match c {
@@ -20,9 +18,8 @@ pub fn escaped<'a, I>() -> impl Parser<I, Output=char>
     });
 }
 
-pub fn string<'a, I>() -> impl Parser<I, Output=Token>
-  where I: RangeStream<Token=char, Range=&'a str>,
-        I::Error: ParseError<I::Token, I::Range, I::Position> {
+pub fn string<'src, I>() -> impl Parser<I, Output=Token>
+  where I: RangeStream<Token=char, Range=&'src str> {
 
   let string1 = (
     char::char('"'),
