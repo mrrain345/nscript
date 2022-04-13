@@ -27,8 +27,8 @@ pub enum Keyword {
   Throw,
 }
 
-pub fn keyword<'a, I>() -> impl Parser<I, Output=Token<'a>>
-  where I: RangeStream<Token=char, Range=&'a str>,
+pub fn keyword<'a, I>() -> impl Parser<I, Output=Token> + 'a
+  where I: RangeStream<Token=char, Range=&'a str> + 'a,
         I::Error: ParseError<I::Token, I::Range, I::Position> {
   
   return choice::choice((
