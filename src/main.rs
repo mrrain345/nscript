@@ -2,6 +2,7 @@ use std::env;
 use std::path::PathBuf;
 
 mod parser;
+mod tokenizer;
 
 fn main() {
   // Get the path to the file.
@@ -29,20 +30,21 @@ fn main() {
   };
 
   // Parse the file.
-  match parser::parse(script.as_str()) {
-    Ok((output, remaining)) => {
-      println!("Tokens:");
+  parser::parse(&script);
+  // match parser::parse(script.as_str()) {
+  //   Ok((output, remaining)) => {
+  //     println!("Tokens:");
 
-      output.iter().for_each(|token| {
-        println!("{:?}", token);
-      });
+  //     output.iter().for_each(|token| {
+  //       println!("{:?}", token);
+  //     });
 
-      println!("\nLength: {}", output.len());
+  //     println!("\nLength: {}", output.len());
 
-      if remaining.input.len() > 0 {
-        println!("\nRemaining (len: {}):\n{}", remaining.input.len(), remaining.input)
-      }
-    }
-    Err(err) => eprintln!("{}", &err),
-  }
+  //     if remaining.input.len() > 0 {
+  //       println!("\nRemaining (len: {}):\n{}", remaining.input.len(), remaining.input)
+  //     }
+  //   }
+  //   Err(err) => eprintln!("{}", &err),
+  // }
 }

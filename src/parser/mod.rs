@@ -1,85 +1,49 @@
-use combine::parser::{char, choice, range, repeat, combinator};
-use combine::parser::{Parser, EasyParser};
+use combine::parser::{EasyParser, Parser, char, repeat};
+use combine::stream::position::{Stream as PositionStream};
 use combine::stream::RangeStream;
-use combine::stream::position::{SourcePosition, Stream};
-use combine::easy::Errors;
 
-mod keywords;
-mod operators;
-mod punctuators;
-mod number;
-mod integer;
-mod string;
+use crate::tokenizer::terminator;
+use super::tokenizer;
 
-use keywords::Keyword;
-use operators::Operator;
-use punctuators::Punctuator;
+pub mod expressions;
+mod operations;
 
-#[derive(Debug)]
-pub enum Token {
-  Keyword(Keyword),
-  Operator(Operator),
-  Punctuator(Punctuator),
-  Identifier(String),
-  Integer(i32),
-  Number(f64),
-  Boolean(bool),
-  String(String),
-  Null,
-  Terminator,
-}
+use expressions::{expression, Expression};
 
-pub fn parse<'src>(source: &'src str) ->
-  Result<(Vec<Token>, Stream<&str, SourcePosition>), Errors<char, &str, SourcePosition>> {
-
-  tokenize().easy_parse(Stream::new(source))
-}
-
-fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Token>> + 'src
+pub fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Expression>> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-  let tokens = choice::choice((
-    number::number(),
-    integer::integer(),
-    string::string(),
-    literals(),
-    keywords::keyword(),
-    operators::operator(),
-    punctuators::punctuator(),
-    identifier(),
-    terminator(),
-  ));
-
-  let spaces = range::take_while(|c: char| c != '\n' && c.is_whitespace());
-  return repeat::sep_by(tokens, spaces);
+  // let spaces = range::take_while(|c: char| c.is_whitespace());
+  repeat::sep_end_by(expression(), terminator())
 }
 
-fn literals<'src, I>() -> impl Parser<I, Output=Token> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  let true_ = range::range("true").map(|_| Token::Boolean(true));
-  let false_ = range::range("false").map(|_| Token::Boolean(false));
-  let null_ = range::range("null").map(|_| Token::Null);
-
-  return choice::choice((
-    combinator::attempt(true_),
-    combinator::attempt(false_),
-    combinator::attempt(null_),
-  ));
-}
-
-fn identifier<'src, I>() -> impl Parser<I, Output=Token> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+pub fn parse<'src>(source: &'src str) {
+  // -> Result<(Vec<Token>, Stream<&str, SourcePosition>), Errors<char, &str, SourcePosition>> {
   
-  range::take_while1(|c: char| c.is_alphanumeric() || c == '_').map(|s: &str| {
-    Token::Identifier(String::from(s))
-  })
-}
+  let tokens = tokenize().easy_parse(PositionStream::new(source));
 
-fn terminator<'src, I>() -> impl Parser<I, Output=Token> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+  match tokens {
+    Ok((tokens, stream)) => {
+      // println!("{:?}", tokens);
+      println!("{:?}\n", stream);
 
-  range::take_while1(|c: char| c == ';' || c == '\n' || c.is_whitespace()).map(|_| {
-    Token::Terminator
-  })
+      tokens.iter().for_each(|token| {
+        println!("{:?}", token);
+      });
+      // let result = parse_instruction().easy_parse(PositionStream::new(&tokens[..]));
+
+      // match result {
+      //   Ok((instruction, _)) => {
+      //     println!("\n[INSTRUCTIONS]:\n{:?}\n\n", instruction);
+      //     // println!("[STREAM]:\n{:?}\n\n", stream);
+      //   },
+      //   Err(errors) => {
+      //     println!("\n{:?} {:?}", errors.position, errors.errors);
+      //   },
+      // }
+    },
+    Err(errors) => {
+      println!("{:?}", errors);
+    }
+  }
 }

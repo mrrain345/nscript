@@ -1,9 +1,8 @@
 use super::Token;
-use combine::parser::{char, choice, range, combinator, sequence};
-use combine::parser::Parser;
+use combine::parser::{Parser, char, choice, range, combinator};
 use combine::stream::RangeStream;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
   This, Typeof, Extends,
   Fn, Class, Type, Constructor,
@@ -19,8 +18,8 @@ pub enum Keyword {
   Get, Set,
 }
 
-fn parse_keyword<'src, I>(key: &'static str) -> sequence::With<range::Range<I>, combinator::NotFollowedBy<impl Parser<I, Output=char, PartialState=()>>>
-  where I: RangeStream<Token=char, Range=&'src str> {
+fn parse_keyword<'src, I>(key: &'static str) -> impl Parser<I, Output=()> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
   
   range::range(key).with(combinator::not_followed_by(char::alpha_num()))
 }
