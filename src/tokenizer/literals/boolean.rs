@@ -1,6 +1,6 @@
 use combine::parser::{Parser, range, choice};
 use combine::stream::RangeStream;
-use super::separator;
+use crate::tokenizer::{ignore_spaces, separator};
 
 pub fn boolean<'src, I>() -> impl Parser<I, Output=bool> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
@@ -13,5 +13,7 @@ pub fn boolean<'src, I>() -> impl Parser<I, Output=bool> + 'src
     .with(separator())
     .map(|_| false);
 
-  choice::or(true_, false_).expected("boolean")
+  ignore_spaces(
+    choice::or(true_, false_).expected("boolean")
+  )
 }

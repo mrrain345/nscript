@@ -1,5 +1,6 @@
+use combine::easy::Errors;
 use combine::parser::{EasyParser, Parser, char, repeat};
-use combine::stream::position::{Stream as PositionStream};
+use combine::stream::position::{Stream as PositionStream, SourcePosition};
 use combine::stream::RangeStream;
 
 use crate::tokenizer::terminator;
@@ -7,6 +8,7 @@ use super::tokenizer;
 
 pub mod expressions;
 mod operations;
+mod codegen;
 
 use expressions::{expression, Expression};
 
@@ -17,33 +19,26 @@ pub fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Expression>> + 'src
   repeat::sep_end_by(expression(), terminator())
 }
 
-pub fn parse<'src>(source: &'src str) {
-  // -> Result<(Vec<Token>, Stream<&str, SourcePosition>), Errors<char, &str, SourcePosition>> {
-  
-  let tokens = tokenize().easy_parse(PositionStream::new(source));
+pub fn parse<'src>(source: &'src str) -> Result<Vec<Expression>, Errors<char, &str, SourcePosition>> {
 
-  match tokens {
-    Ok((tokens, stream)) => {
-      // println!("{:?}", tokens);
-      println!("{:?}\n", stream);
+  let expressions = tokenize().easy_parse(PositionStream::new(source));
 
-      tokens.iter().for_each(|token| {
-        println!("{:?}", token);
-      });
-      // let result = parse_instruction().easy_parse(PositionStream::new(&tokens[..]));
+  match expressions {
+    Ok((expressions, stream)) => {
+      if !stream.input.is_empty() {
+        println!("Unparsed: {:?}", stream.input);
+        println!("{:?}", stream.positioner);
+      }
 
-      // match result {
-      //   Ok((instruction, _)) => {
-      //     println!("\n[INSTRUCTIONS]:\n{:?}\n\n", instruction);
-      //     // println!("[STREAM]:\n{:?}\n\n", stream);
-      //   },
-      //   Err(errors) => {
-      //     println!("\n{:?} {:?}", errors.position, errors.errors);
-      //   },
-      // }
+      for expr in &expressions {
+        println!("{:?}", expr);
+      }
+
+      println!("\nExecution:");
+      Ok(expressions)
     },
     Err(errors) => {
-      println!("{:?}", errors);
+      Err(errors)
     }
   }
 }

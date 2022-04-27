@@ -9,5 +9,3 @@ pub use integer::integer;
 pub use null::null;
 pub use number::number;
 pub use string::string;
-
-use super::separator;

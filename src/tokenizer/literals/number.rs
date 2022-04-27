@@ -1,6 +1,7 @@
 use combine::parser::{Parser, char, choice, range, combinator};
 use combine::stream::RangeStream;
-use super::separator;
+
+use crate::tokenizer::{ignore_spaces, separator};
 
 pub fn number<'src, I>() -> impl Parser<I, Output=f64> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
@@ -45,8 +46,10 @@ pub fn number<'src, I>() -> impl Parser<I, Output=f64> + 'src
     });
   
   
-  choice::choice((
-    combinator::attempt(number1.skip(separator())),
-    combinator::attempt(number2.skip(separator())),
-  )).expected("number")
+  ignore_spaces(
+    choice::choice((
+      combinator::attempt(number1.skip(separator())),
+      combinator::attempt(number2.skip(separator())),
+    )).expected("number")
+  )
 }

@@ -1,6 +1,7 @@
 use combine::parser::{Parser, char, repeat, token, sequence};
 use combine::stream::RangeStream;
-use super::separator;
+
+use crate::tokenizer::{separator, ignore_spaces};
 
 pub fn string<'src, I>() -> impl Parser<I, Output=String> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
@@ -22,7 +23,9 @@ pub fn string<'src, I>() -> impl Parser<I, Output=String> + 'src
     ),
   );
 
-  string('"').or(string('\''))
-    .skip(separator())
-    .expected("string")
+  ignore_spaces(
+    string('"').or(string('\''))
+      .skip(separator())
+      .expected("string")
+  )
 }

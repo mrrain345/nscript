@@ -25,7 +25,7 @@ fn fib(n: Integer) -> Integer {
 print(fib(10))
 
 fn whileTest(n: Integer) {
-  let i: Integer = 0
+  var i: Integer = 0
   while i < n {
     print(i)
     i = i + 1

@@ -1,7 +1,9 @@
-use combine::parser::{Parser, choice, combinator};
+use combine::parser::{Parser, choice, combinator, repeat};
 use combine::parser::combinator::{FnOpaque, no_partial};
 use combine::stream::RangeStream;
-use combine::opaque;
+use combine::{opaque, optional, between};
+
+use crate::tokenizer::*;
 
 use super::operations::operation;
 
@@ -23,16 +25,15 @@ pub enum Expression {
   Not(Box<Expression>),
   Array(Vec<Expression>),
   Call(String, Vec<Expression>),
-  Index(Box<Expression>, Box<Expression>),
   Return(Box<Expression>),
 
-  Let(Let),
-  Var(Var),
-  Fn(Fn),
-  Assign(Assign),
-  If(If),
-  While(While),
-  For(For),
+  Let { name: String, type_: Option<Type>, value: Box<Expression> },
+  Var { name: String, type_: Option<Type>, value: Option<Box<Expression>> },
+  Fn { name: String, params: ParamsList, return_type: Option<Type>, body: Block },
+  Assign { name: String, value: Box<Expression> },
+  If { condition: Box<Expression>, then: Block, else_: Option<Block> },
+  While { condition: Box<Expression>, body: Block },
+  For { index: Option<String>, index_type: Option<Type>, iter: String, iter_type: Option<Type>, generator: Box<Expression>, body: Block },
   Break,
   Continue,
   Block(Block),
@@ -48,74 +49,74 @@ pub struct ParamsList(pub Vec<(String, String)>);
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block(pub Vec<Expression>);
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Value {
-  Integer(i32),
-  Number(f64),
-  String(String),
-  Bool(bool),
-  Null,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Let {
-  pub name: String,
-  pub type_: Option<Type>,
-  pub value: Value,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Var {
-  pub name: String,
-  pub type_: Option<Type>,
-  pub value: Option<Box<Expression>>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Fn {
-  pub name: String,
-  pub params: ParamsList,
-  pub return_type: Option<Type>,
-  pub body: Block,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Assign {
-  pub name: String,
-  pub value: Box<Expression>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct If {
-  pub condition: Box<Expression>,
-  pub then: Block,
-  pub else_: Option<Block>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct While {
-  pub condition: Box<Expression>,
-  pub body: Block,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct For {
-  pub index: Option<String>,
-  pub index_type: Option<Type>,
-  pub iter: String,
-  pub iter_type: Option<Type>,
-  pub generator: Box<Expression>,
-  pub body: Block,
-}
-
-
-
 pub fn expression<'src, I>() -> FnOpaque<I, Expression>
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   opaque!(no_partial(
     choice::choice((
+      combinator::attempt(let_()),
+      combinator::attempt(var()),
+      combinator::attempt(call()),
       combinator::attempt(operation()),
     ))
+  ))
+}
+
+pub fn let_<'src, I>() -> FnOpaque<I, Expression>
+  where I: RangeStream<Token=char, Range=&'src str> + 'src{
+
+  opaque!(no_partial(
+    keyword("let").with((
+      identifier(),
+      optional( punctuator(":").with(type_()) )
+      .skip(punctuator("=")),
+      operation(),
+    ))
+    .map(|(name, type_, value)| Expression::Let {
+      name,
+      type_: match type_ {
+        Some(t) => Some(Type(t)),
+        None => None,
+      },
+      value: Box::new(value),
+    })
+  ))
+}
+
+pub fn var<'src, I>() -> FnOpaque<I, Expression>
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  opaque!(no_partial(
+    keyword("var").with((
+      identifier(),
+      optional( punctuator(":").with(type_()) ),
+      optional( punctuator("=").with(operation()) ),
+    ))
+    .map(|(name, type_, value)| Expression::Var {
+      name,
+      type_: match type_ {
+        Some(t) => Some(Type(t)),
+        None => None,
+      },
+      value: match value {
+        Some(v) => Some(Box::new(v)),
+        None => None,
+      },
+    })
+  ))
+}
+
+pub fn call<'src, I>() -> FnOpaque<I, Expression>
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  opaque!(no_partial(
+    (
+      identifier(),
+      between(
+        punctuator("("),punctuator(")"),
+        repeat::sep_end_by(operation(), punctuator(","))
+      ),
+    )
+    .map(|(name, params)| Expression::Call(name, params))
   ))
 }

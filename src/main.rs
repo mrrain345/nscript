@@ -1,8 +1,13 @@
 use std::env;
 use std::path::PathBuf;
 
+use inkwell::context::Context;
+use nscript::compile::compile;
+use nscript::environment::Environment;
+
 mod parser;
 mod tokenizer;
+mod nscript;
 
 fn main() {
   // Get the path to the file.
@@ -29,22 +34,22 @@ fn main() {
     }
   };
 
+  // Create a new environment.
+  let context = Context::create();
+  let mut env = Environment::new(&context);
+
   // Parse the file.
-  parser::parse(&script);
-  // match parser::parse(script.as_str()) {
-  //   Ok((output, remaining)) => {
-  //     println!("Tokens:");
+  match parser::parse(&script) {
+    Ok(expressions) => {
 
-  //     output.iter().for_each(|token| {
-  //       println!("{:?}", token);
-  //     });
+      // Compile the file.
+      let main = compile(&mut env, &expressions);
 
-  //     println!("\nLength: {}", output.len());
-
-  //     if remaining.input.len() > 0 {
-  //       println!("\nRemaining (len: {}):\n{}", remaining.input.len(), remaining.input)
-  //     }
-  //   }
-  //   Err(err) => eprintln!("{}", &err),
-  // }
+      // Run the main function.
+      unsafe {
+        main.call();
+      }
+    }
+    Err(err) => eprintln!("{}", &err),
+  }
 }

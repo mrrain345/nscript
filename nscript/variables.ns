@@ -1,0 +1,6 @@
+let a = 5 * 10 - 8;
+let b = a * 2;
+var v = 5 * 5;
+print(a);
+print(b);
+print(v);
