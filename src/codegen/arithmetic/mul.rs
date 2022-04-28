@@ -4,38 +4,29 @@ pub fn mul<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Express
   let left = left.codegen(env);
   let right = right.codegen(env);
 
-  if let (Some(left), Some(right)) = (left.into_option(), right.into_option()) {
-    if left.is_int_value() && right.is_int_value() {
-      // Integer * Integer
-      let left = left.into_int_value();
-      let right = right.into_int_value();
-      let result = env.builder.build_int_mul(left, right, "mul");
-      result.into()
-    }
-    else if left.is_float_value() && right.is_float_value() {
-      // Number * Number
-      let left = left.into_float_value();
-      let right = right.into_float_value();
-      let result = env.builder.build_float_mul(left, right, "mul");
-      result.into()
-    }
-    else if left.is_int_value() && right.is_float_value() {
-      // Integer * Number
-      let left = left.into_int_value();
+  match (left, right) {
+    // Integer * Integer
+    (AnyValue::Integer(left), AnyValue::Integer(right)) => {
+      let value = env.builder.build_int_mul(left, right, "mul");
+      AnyValue::Integer(value)
+    },
+    // Number * Number
+    (AnyValue::Number(left), AnyValue::Number(right)) => {
+      let value = env.builder.build_float_mul(left, right, "mul");
+      AnyValue::Number(value)
+    },
+    // Integer * Number
+    (AnyValue::Integer(left), AnyValue::Number(right)) => {
       let left = env.builder.build_signed_int_to_float(left, env.context.f64_type(), "int_to_float");
-      let right = right.into_float_value();
-      let result = env.builder.build_float_mul(left, right, "mul");
-      result.into()
-    }
-    else if left.is_float_value() && right.is_int_value() {
-      // Number * Integer
-      let right = right.into_int_value();
+      let value = env.builder.build_float_mul(left, right, "mul");
+      AnyValue::Number(value)
+    },
+    // Number * Integer
+    (AnyValue::Number(left), AnyValue::Integer(right)) => {
       let right = env.builder.build_signed_int_to_float(right, env.context.f64_type(), "int_to_float");
-      let left = left.into_float_value();
-      let result = env.builder.build_float_mul(left, right, "mul");
-      result.into()
-    }
-    else { panic!("Parser error: Multiplication of incompatible types") }
+      let value = env.builder.build_float_mul(left, right, "mul");
+      AnyValue::Number(value)
+    },
+    _ => panic!("Parser error: Mul of incompatible types")
   }
-  else { panic!("Parser error: invalid expression") }
 }

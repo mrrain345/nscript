@@ -11,6 +11,7 @@ pub fn fn_main<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) ->
   // Create the main function (fn main() -> null)
   let fn_type = void_type.fn_type(&[], false);
   let function = env.module.add_function(name, fn_type, None);
+  env.state.current_function = Some(function);
   
   // Create blocks
   let entry_block = env.context.append_basic_block(function, "entry");

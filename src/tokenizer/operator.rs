@@ -1,101 +1,157 @@
-use combine::parser::{Parser, char, range};
+use combine::parser::{Parser, char, range, choice};
 use combine::stream::RangeStream;
 
 use super::ignore_spaces;
 
-pub fn operator<'src, I>(op: &'static str) -> impl Parser<I, Output=()> + 'src
+// - + ! ~
+pub fn unitary_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   ignore_spaces(
-    range::range(op).map(|_| ())
+    choice::choice((
+      char::char('-'),
+      char::char('+'),
+      char::char('!'),
+      char::char('~'),
+    ))
   )
 }
 
+// **
+pub fn power_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    range::range("**")
+  )
+}
+
+// * / %
 pub fn multiplicative_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   ignore_spaces(
-    char::char('*').or(char::char('/')).or(char::char('%'))
+    choice::choice((
+      char::char('*'),
+      char::char('/'),
+      char::char('%'),
+    ))
   )
 }
 
+// + -
 pub fn additive_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   ignore_spaces(
-    char::char('+').or(char::char('-'))
+    choice::choice((
+      char::char('+'),
+      char::char('-'),
+    ))
   )
 }
 
-// pub fn any_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-//   where I: RangeStream<Token=char, Range=&'src str> + 'src {
+// << >>
+pub fn shift_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-//   // Parser for operators
-//   let operator = |op| range::range(op).map(move |_| op);
-    
-//   let comparison = choice::choice((
-//     operator("=="),
-//     operator("!="),
-//     operator("<="),
-//     operator(">="),
-//     operator("<"),
-//     operator(">"),
-//   ));
+  ignore_spaces(
+    choice::choice((
+      range::range("<<"),
+      range::range(">>"),
+    ))
+  )
+}
 
-//   let other = choice::choice((
-//     operator("..."),
-//     operator("."),
-//     operator("??"),
-//     operator("?."),
-//     operator("?"),
-//     operator("->"),
-//     operator("=>"),
-//   ));
-  
-//   let assignment = choice::choice((
-//     operator("="),
-//     operator("+="),
-//     operator("-="),
-//     operator("**="),
-//     operator("*="),
-//     operator("/="),
-//     operator("%="),
-//     operator("&="),
-//     operator("|="),
-//     operator("^="),
-//   ));
+// < > <= >=
+pub fn relational_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-//   let arithmetic = choice::choice((
-//     operator("+"),
-//     operator("-"),
-//     operator("**"),
-//     operator("*"),
-//     operator("/"),
-//     operator("%"),
-//   ));
+  ignore_spaces(
+    choice::choice((
+      range::range("<"),
+      range::range(">"),
+      range::range("<="),
+      range::range(">="),
+    ))
+  )
+}
 
-//   let logical = choice::choice((
-//     operator("&&"),
-//     operator("||"),
-//     operator("!"),
-//   ));
+// == !=
+pub fn equality_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-//   let bitwise = choice::choice((
-//     operator("&"),
-//     operator("|"),
-//     operator("^"),
-//     operator("~"),
-//   ));
+  ignore_spaces(
+    choice::choice((
+      range::range("=="),
+      range::range("!="),
+    ))
+  )
+}
 
+// &
+pub fn bitwise_and_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-//   ignore_spaces(
-//     choice::choice((
-//       comparison,
-//       other,
-//       assignment,
-//       arithmetic,
-//       logical,
-//       bitwise,
-//     ))
-//   ).expected("operator")
-// }
+  ignore_spaces(
+    char::char('&')
+  )
+}
+
+// ^
+pub fn bitwise_xor_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    char::char('^')
+  )
+}
+
+// |
+pub fn bitwise_or_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    char::char('|')
+  )
+}
+
+// &&
+pub fn logical_and_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    range::range("&&")
+  )
+}
+
+// ||
+pub fn logical_or_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    range::range("||")
+  )
+}
+
+// = *= /= %= **= += -= <<= >>= &= ^= |=
+pub fn assignment_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+
+  ignore_spaces(
+    choice::choice((
+      range::range("="),
+      range::range("*="),
+      range::range("/="),
+      range::range("%="),
+      range::range("**="),
+      range::range("+="),
+      range::range("-="),
+      range::range("<<="),
+      range::range(">>="),
+      range::range("&="),
+      range::range("^="),
+      range::range("|="),
+    ))
+  )
+}

@@ -1,17 +1,47 @@
-use crate::nscript::{any_value::AnyValue, environment::Environment};
+use crate::nscript::{any_value::{AnyValue, AnyType}, environment::Environment, state::StateType};
 
 pub fn integer<'ctx>(env: &mut Environment<'ctx>, value: i32) -> AnyValue<'ctx> {
-  env.context.i32_type().const_int(value as u64, false).into()
+  AnyValue::Integer(env.integer(value))
 }
 
 pub fn number<'ctx>(env: &mut Environment<'ctx>, value: f64) -> AnyValue<'ctx> {
-  env.context.f64_type().const_float(value).into()
+  AnyValue::Number(env.number(value))
+}
+
+pub fn string<'ctx>(env: &mut Environment<'ctx>, value: &str) -> AnyValue<'ctx> {
+  todo!()
+}
+
+pub fn boolean<'ctx>(env: &mut Environment<'ctx>, value: bool) -> AnyValue<'ctx> {
+  AnyValue::Boolean(env.boolean(value))
+}
+
+pub fn null<'ctx>(env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+  AnyValue::Null
 }
 
 pub fn identifier<'ctx>(env: &mut Environment<'ctx>, name: &str) -> AnyValue<'ctx> {
-  if let Some(value) = env.state.get(name, None).into_option() {
-    Some(value).into()
+  if let Some((value, type_)) = env.state.get(name, None) {
+    // Get variable
+    if type_ == StateType::Variable {
+      if let AnyValue::Ptr{ ptr, type_} = value {
+        let res = env.builder.build_load(ptr, "load");
+
+        match type_ {
+          AnyType::Integer => AnyValue::Integer(res.into_int_value()),
+          AnyType::Number => AnyValue::Number(res.into_float_value()),
+          AnyType::Boolean => AnyValue::Boolean(res.into_int_value()),
+          _ => panic!("Parser error: invalid type `{type_:?}`")
+        }
+        
+      } else {
+        panic!("Parser error: invalid type `{type_:?}`")
+      }
+    } else {
+      // Get label
+      value
+    }
   } else {
-    panic!("Parser error: label not found")
+    panic!("Parser error: label `{name}` not found");
   }
 }
