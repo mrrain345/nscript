@@ -8,7 +8,6 @@ use super::tokenizer;
 
 pub mod expressions;
 mod operations;
-mod codegen;
 
 use expressions::{expression, Expression};
 

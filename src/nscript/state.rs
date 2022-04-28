@@ -18,9 +18,9 @@ pub enum StateType {
 
 impl<'ctx> State<'ctx> {
   pub fn new() -> Self {
-    return State {
+    State {
       values: HashMap::new(),
-    };
+    }
   }
 
   pub fn get(&self, name: &str, type_: Option<StateType>) -> AnyValue<'ctx> {
@@ -30,17 +30,19 @@ impl<'ctx> State<'ctx> {
 
     if type_.is_none() { return Some(value.1).into(); }
     if value.0 == type_.unwrap() { return Some(value.1).into(); }
-    return AnyValue(None);
+    AnyValue(None)
   }
 
   pub fn add(&mut self, name: String, type_: StateType, value: AnyValueEnum<'ctx>) -> AnyValue<'ctx> {
     if self.values.get(&name).is_some() { return AnyValue(None); }
     if self.values.insert(name, (type_, value)).is_some() { return AnyValue(None); }
-    return Some(value).into();
+    Some(value).into()
   }
 
-  pub fn set(&mut self, name: String, type_: StateType, value: AnyValueEnum<'ctx>) {
+  pub fn set(&mut self, name: String, type_: StateType, value: AnyValueEnum<'ctx>) -> AnyValue<'ctx> {
+    if self.values.get(&name).is_none() { return AnyValue(None); }
     self.values.insert(name, (type_, value));
+    Some(value).into()
   }
   
   // Label
@@ -52,8 +54,8 @@ impl<'ctx> State<'ctx> {
     self.add(name, StateType::Label, value)
   }
 
-  pub fn set_label(&mut self, name: String, value: AnyValueEnum<'ctx>) {
-    self.set(name, StateType::Label, value);
+  pub fn set_label(&mut self, name: String, value: AnyValueEnum<'ctx>) -> AnyValue<'ctx> {
+    self.set(name, StateType::Label, value)
   }
 
   // Variable
@@ -65,8 +67,8 @@ impl<'ctx> State<'ctx> {
     self.add(name, StateType::Variable, value)
   }
 
-  pub fn set_variable(&mut self, name: String, value: AnyValueEnum<'ctx>) {
-    self.set(name, StateType::Variable, value);
+  pub fn set_variable(&mut self, name: String, value: AnyValueEnum<'ctx>) -> AnyValue<'ctx> {
+    self.set(name, StateType::Variable, value)
   }
 
   // Function
@@ -78,7 +80,7 @@ impl<'ctx> State<'ctx> {
     self.add(name, StateType::Function, value.into()).into_option().map(|v| v.into_function_value())
   }
 
-  pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>) {
-    self.set(name, StateType::Function, value.into());
+  pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>) -> Option<FunctionValue<'ctx>> {
+    self.set(name, StateType::Function, value.into()).into_option().map(|v| v.into_function_value())
   }
 }

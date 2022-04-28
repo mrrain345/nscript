@@ -1,7 +1,6 @@
-use combine::parser::{Parser, choice, combinator, repeat};
-use combine::parser::combinator::{FnOpaque, no_partial};
+use combine::parser::{choice, combinator, repeat};
 use combine::stream::RangeStream;
-use combine::{opaque, optional, between};
+use combine::{optional, between, parser};
 
 use crate::tokenizer::*;
 
@@ -15,29 +14,40 @@ pub enum Expression {
   Bool(bool),
   Null,
   Identifier(String),
+  
   Add(Box<Expression>, Box<Expression>),
   Sub(Box<Expression>, Box<Expression>),
   Mul(Box<Expression>, Box<Expression>),
   Div(Box<Expression>, Box<Expression>),
-  Mod(Box<Expression>, Box<Expression>),
-  Pow(Box<Expression>, Box<Expression>),
-  Neg(Box<Expression>),
-  Not(Box<Expression>),
-  Array(Vec<Expression>),
-  Call(String, Vec<Expression>),
-  Return(Box<Expression>),
+  Modulo(Box<Expression>, Box<Expression>),
+  Power(Box<Expression>, Box<Expression>),
+  // Minus(Box<Expression>),
+  // Plus(Box<Expression>),
 
+  // Not(Box<Expression>),
+  // And(Box<Expression>, Box<Expression>),
+  // Or(Box<Expression>, Box<Expression>),
+
+  // Equal(Box<Expression>, Box<Expression>),
+  // NotEqual(Box<Expression>, Box<Expression>),
+  // LessThen(Box<Expression>, Box<Expression>),
+  // GreaterThen(Box<Expression>, Box<Expression>),
+  // LessOrEqual(Box<Expression>, Box<Expression>),
+  // GreaterOrEqual(Box<Expression>, Box<Expression>),
+  
   Let { name: String, type_: Option<Type>, value: Box<Expression> },
   Var { name: String, type_: Option<Type>, value: Option<Box<Expression>> },
-  Fn { name: String, params: ParamsList, return_type: Option<Type>, body: Block },
   Assign { name: String, value: Box<Expression> },
-  If { condition: Box<Expression>, then: Block, else_: Option<Block> },
-  While { condition: Box<Expression>, body: Block },
-  For { index: Option<String>, index_type: Option<Type>, iter: String, iter_type: Option<Type>, generator: Box<Expression>, body: Block },
-  Break,
-  Continue,
-  Block(Block),
-  Empty,
+
+  // Fn { name: String, args: ParamsList, return_type: Option<Type>, body: Block },
+  Call { name: String, args: Vec<Expression> },
+  // Return(Box<Expression>),
+
+  // If { condition: Box<Expression>, then: Block, else_: Option<Block> },
+  // While { condition: Box<Expression>, body: Block },
+  // For { index: Option<String>, index_type: Option<Type>, iter: String, iter_type: Option<Type>, generator: Box<Expression>, body: Block },
+  // Break,
+  // Continue,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,23 +59,24 @@ pub struct ParamsList(pub Vec<(String, String)>);
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block(pub Vec<Expression>);
 
-pub fn expression<'src, I>() -> FnOpaque<I, Expression>
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+parser!{
+  pub fn expression['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
-  opaque!(no_partial(
     choice::choice((
       combinator::attempt(let_()),
       combinator::attempt(var()),
+      combinator::attempt(assign()),
       combinator::attempt(call()),
       combinator::attempt(operation()),
     ))
-  ))
+  }
 }
 
-pub fn let_<'src, I>() -> FnOpaque<I, Expression>
-  where I: RangeStream<Token=char, Range=&'src str> + 'src{
+parser!{
+  pub fn let_['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
-  opaque!(no_partial(
     keyword("let").with((
       identifier(),
       optional( punctuator(":").with(type_()) )
@@ -80,13 +91,13 @@ pub fn let_<'src, I>() -> FnOpaque<I, Expression>
       },
       value: Box::new(value),
     })
-  ))
+  }
 }
 
-pub fn var<'src, I>() -> FnOpaque<I, Expression>
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+parser!{
+  pub fn var['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
-  opaque!(no_partial(
     keyword("var").with((
       identifier(),
       optional( punctuator(":").with(type_()) ),
@@ -103,13 +114,29 @@ pub fn var<'src, I>() -> FnOpaque<I, Expression>
         None => None,
       },
     })
-  ))
+  }
 }
 
-pub fn call<'src, I>() -> FnOpaque<I, Expression>
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+parser!{
+  pub fn assign['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
-  opaque!(no_partial(
+    (
+      identifier(),
+      punctuator("="),
+      operation(),
+    )
+    .map(|(name, _, value)| Expression::Assign {
+      name,
+      value: Box::new(value),
+    })
+  }
+}
+
+parser!{
+  pub fn call['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+
     (
       identifier(),
       between(
@@ -117,6 +144,6 @@ pub fn call<'src, I>() -> FnOpaque<I, Expression>
         repeat::sep_end_by(operation(), punctuator(","))
       ),
     )
-    .map(|(name, params)| Expression::Call(name, params))
-  ))
+    .map(|(name, args)| Expression::Call { name, args })
+  }
 }

@@ -4,3 +4,5 @@ var v = 5 * 5;
 print(a);
 print(b);
 print(v);
+v = 4 * 2;
+print(v);

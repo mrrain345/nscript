@@ -2,12 +2,13 @@ use std::env;
 use std::path::PathBuf;
 
 use inkwell::context::Context;
-use nscript::compile::compile;
+use nscript::compile;
 use nscript::environment::Environment;
 
 mod parser;
 mod tokenizer;
 mod nscript;
+mod codegen;
 
 fn main() {
   // Get the path to the file.
