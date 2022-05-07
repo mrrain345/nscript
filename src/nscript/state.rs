@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use inkwell::{values::{FunctionValue, PointerValue}};
+use inkwell::{values::{FunctionValue, PointerValue}, basic_block::BasicBlock};
 
-use super::any_value::{AnyValue, AnyType};
+use super::{any_value::{AnyValue, AnyType}, type_::Type};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StateType {
@@ -14,14 +14,14 @@ pub enum StateType {
 #[derive(Debug)]
 pub struct State<'ctx> {
   pub scopes: Vec<HashMap<String, (AnyValue<'ctx>, StateType)>>,
-  pub current_function: Option<FunctionValue<'ctx>>,
+  pub current_block: Option<BasicBlock<'ctx>>,
 }
 
 impl<'ctx> State<'ctx> {
   pub fn new() -> Self {
     State {
       scopes: vec![HashMap::new()],
-      current_function: None,
+      current_block: None,
     }
   }
 
@@ -60,9 +60,9 @@ impl<'ctx> State<'ctx> {
     let value = value.unwrap();
 
     // If type is not specified, return the value
-    if type_.is_none() { return Some(*value); }
+    if type_.is_none() { return Some(value.clone()); }
     // If type is specified, check if it is the same
-    if value.1 == type_.unwrap() { return Some(*value); }
+    if value.1 == type_.unwrap() { return Some(value.clone()); }
     None
   }
 
@@ -76,7 +76,7 @@ impl<'ctx> State<'ctx> {
     if scope.is_some() { return None; }
 
     // Add the element to the current scope
-    if self.scope_mut().insert(name, (value, type_)).is_some() { return None; }
+    if self.scope_mut().insert(name, (value.clone(), type_)).is_some() { return None; }
     Some(value)
   }
 
@@ -91,7 +91,7 @@ impl<'ctx> State<'ctx> {
     let scope = scope.unwrap();
 
     // Set new value in the same scope
-    scope.insert(name, (value, type_));
+    scope.insert(name, (value.clone(), type_));
     Some(value)
   }
   
@@ -130,19 +130,19 @@ impl<'ctx> State<'ctx> {
   }
 
   // Functions
-  
+
   /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<FunctionValue<'ctx>> {
-    self.get(name, Some(StateType::Function)).map(|(value, _)| value.into_function())
+  pub fn get_function(&self, name: &str) -> Option<AnyValue<'ctx>> {
+    self.get(name, Some(StateType::Function)).map(|(value, _)| value)
   }
 
   /// Adds a new function to the topmost scope
-  pub fn add_function(&mut self, name: String, value: FunctionValue<'ctx>) -> Option<FunctionValue<'ctx>> {
-    self.add(name, StateType::Function, AnyValue::Fn(value)).map(|v| v.into_function())
+  pub fn add_function(&mut self, name: String, value: FunctionValue<'ctx>, args: Vec<(String, Type)>) -> Option<AnyValue<'ctx>> {
+    self.add(name.clone(), StateType::Function, AnyValue::Fn{ fn_: value, name, args })
   }
 
   /// Changes the value of the function from any scope
-  pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>) -> Option<FunctionValue<'ctx>> {
-    self.set(name, StateType::Function, AnyValue::Fn(value)).map(|v| v.into_function())
+  pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>, args: Vec<(String, Type)>) -> Option<AnyValue<'ctx>> {
+    self.set(name.clone(), StateType::Function, AnyValue::Fn{ fn_: value, name, args })
   }
 }

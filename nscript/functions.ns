@@ -1,0 +1,9 @@
+fn add(a: Integer, b: Integer) -> Integer {
+  return a + b;
+};
+
+fn print_smth() {
+  print(add(40, 2));
+};
+
+print_smth();

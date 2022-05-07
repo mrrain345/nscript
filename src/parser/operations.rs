@@ -1,6 +1,6 @@
 use combine::parser::{choice, repeat, sequence};
 use combine::stream::RangeStream;
-use combine::parser;
+use combine::{parser, attempt, between};
 
 use super::expressions::Expression;
 use super::tokenizer::*;
@@ -9,7 +9,27 @@ use super::tokenizer::*;
 parser!{
   pub fn operation['src, I]()(I) -> Expression
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
-    logical_or_operation()
+    
+    choice::choice((
+      attempt(call()),
+      logical_or_operation(),
+    ))
+  }
+}
+
+parser!{
+  pub fn call['src, I]()(I) -> Expression
+  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+
+    (
+      identifier(), // name
+      between(
+        punctuator("("),
+        punctuator(")"),
+        repeat::sep_end_by(operation(), punctuator(",")) // args
+      ),
+    )
+    .map(|(name, args)| Expression::Call { name, args })
   }
 }
 

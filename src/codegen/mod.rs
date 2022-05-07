@@ -1,4 +1,4 @@
-use crate::{nscript::{environment::Environment, any_value::AnyValue}, parser::expressions::Expression};
+use crate::{nscript::{Environment, AnyValue}, parser::expressions::Expression};
 
 mod arithmetic;
 mod assignment;
@@ -44,8 +44,10 @@ impl Expression {
       Expression::Var { name, type_, value } => statement::var(env, name, type_, value),
       Expression::Assign { name, value } => assignment::assign(env, name, value),
       Expression::If { condition, then, else_ } => statement::if_(env, condition, then, else_),
-
+      
+      Expression::Fn { name, args, return_type, body } => statement::fn_(env, name, args, return_type, body),
       Expression::Call { name, args } => call::call(env, name, args),
+      Expression::Return(value) => statement::return_(env, value),
 
       _ => panic!("Parser error: unimplmented expression `{self:?}`"),
     }

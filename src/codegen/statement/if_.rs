@@ -1,4 +1,4 @@
-use crate::{nscript::{environment::Environment, any_value::AnyValue}, parser::expressions::Expression};
+use crate::{nscript::{Environment, AnyValue}, parser::expressions::Expression};
 
 pub fn if_<'ctx>(env: &mut Environment<'ctx>, condition: &Expression, then: &[Expression], else_: &[Expression]) -> AnyValue<'ctx> {
   let condition = condition.codegen(env);
@@ -7,17 +7,22 @@ pub fn if_<'ctx>(env: &mut Environment<'ctx>, condition: &Expression, then: &[Ex
     panic!("Parser error: Condition of if statement must be a boolean or null");
   }
   
-  // Create blocks for the then, else and merge
-  let function = env.state.current_function.unwrap();
-  let then_block = env.context.append_basic_block(function, "then");
+  // Create the then block
+  let function_block = env.state.current_block.unwrap();
+  let then_block = env.context.insert_basic_block_after(function_block, "then");
 
+  // Create the else block
   let else_block = if else_.len() != 0 {
-    Some(env.context.append_basic_block(function, "else"))
+    Some(env.context.insert_basic_block_after(then_block, "else"))
   } else {
     None
   };
 
-  let merge_block = env.context.append_basic_block(function, "merge");
+  // Create the merge block
+  let merge_block = env.context.insert_basic_block_after(
+    else_block.unwrap_or(then_block),
+    "merge",
+  );
   
   // Create the if statement
   env.builder.build_conditional_branch(condition.into_boolean(), then_block, else_block.unwrap_or(merge_block));

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use inkwell::context::Context;
 use nscript::compile;
-use nscript::environment::Environment;
+use nscript::Environment;
 
 mod parser;
 mod tokenizer;

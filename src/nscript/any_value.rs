@@ -1,5 +1,7 @@
 use combine::{Parser, Stream};
-use inkwell::values::{IntValue, FloatValue, FunctionValue, PointerValue};
+use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum}, types::BasicTypeEnum};
+
+use super::type_::Type;
 
 #[derive(Debug, Clone, Copy)]
 pub enum AnyType {
@@ -10,13 +12,13 @@ pub enum AnyType {
   Null,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum AnyValue<'ctx> {
   Integer(IntValue<'ctx>),
   Number(FloatValue<'ctx>),
   Boolean(IntValue<'ctx>),
   Null,
-  Fn(FunctionValue<'ctx>),
+  Fn { fn_: FunctionValue<'ctx>, name: String, args: Vec<(String, Type)> },
   Ptr { ptr: PointerValue<'ctx>, type_: AnyType },
 }
 
@@ -46,7 +48,7 @@ impl<'ctx> AnyValue<'ctx> {
   }
 
   pub fn is_function(&self) -> bool {
-    if let AnyValue::Fn(_) = self {true} else {false}
+    if let AnyValue::Fn {..} = self {true} else {false}
   }
 
   pub fn into_integer(self) -> IntValue<'ctx> {
@@ -72,7 +74,30 @@ impl<'ctx> AnyValue<'ctx> {
 
   pub fn into_function(self) -> FunctionValue<'ctx> {
     match self {
-      AnyValue::Fn(value) => value,
+      AnyValue::Fn{fn_, ..} => fn_,
+      _ => panic!("Invalid type")
+    }
+  }
+}
+
+impl<'ctx> Into<BasicValueEnum<'ctx>> for AnyValue<'ctx> {
+  fn into(self) -> BasicValueEnum<'ctx> {
+    match self {
+      AnyValue::Integer(value) => BasicValueEnum::IntValue(value),
+      AnyValue::Number(value) => BasicValueEnum::FloatValue(value),
+      AnyValue::Boolean(value) => BasicValueEnum::IntValue(value),
+      AnyValue::Ptr {ptr, ..} => BasicValueEnum::PointerValue(ptr),
+      _ => panic!("Invalid type")
+    }
+  }
+}
+
+impl<'ctx> From<BasicValueEnum<'ctx>> for AnyValue<'ctx> {
+  fn from(value: BasicValueEnum<'ctx>) -> AnyValue<'ctx> {
+    match value {
+      BasicValueEnum::IntValue(value) if value.get_type().get_bit_width() == 32 => AnyValue::Integer(value),
+      BasicValueEnum::IntValue(value) if value.get_type().get_bit_width() == 1 => AnyValue::Boolean(value),
+      BasicValueEnum::FloatValue(value) => AnyValue::Number(value),
       _ => panic!("Invalid type")
     }
   }

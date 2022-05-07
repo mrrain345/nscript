@@ -1,6 +1,6 @@
 use inkwell::{IntPredicate, FloatPredicate};
 
-use crate::{nscript::{any_value::AnyValue, environment::Environment}, parser::expressions::Expression};
+use crate::{nscript::{AnyValue, Environment}, parser::expressions::Expression};
 
 pub fn less_than<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
   let left = left.codegen(env);

@@ -1,6 +1,6 @@
 use inkwell::{IntPredicate, FloatPredicate};
 
-use crate::{parser::expressions::Expression, nscript::{any_value::AnyValue, environment::Environment}};
+use crate::{parser::expressions::Expression, nscript::{AnyValue, Environment}};
 
 pub fn not_equal<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
   let left = left.codegen(env);

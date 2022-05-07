@@ -2,14 +2,21 @@ use inkwell::{execution_engine::JitFunction, OptimizationLevel};
 
 use crate::parser::expressions::Expression;
 
-use self::{environment::Environment, fn_print::fn_print, fn_main::fn_main};
+mod fn_print;
+mod fn_main;
 
-pub mod fn_print;
-pub mod fn_main;
+mod any_value;
+mod state;
+mod environment;
+mod type_;
 
-pub mod any_value;
-pub mod state;
-pub mod environment;
+pub use any_value::{AnyType, AnyValue};
+pub use state::{State, StateType};
+pub use environment::Environment;
+pub use type_::{Type, ParamsList};
+
+use fn_print::fn_print;
+use fn_main::fn_main;
 
 
 pub fn compile<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) -> JitFunction<'ctx, unsafe extern "C" fn() -> ()> {

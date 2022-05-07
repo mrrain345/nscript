@@ -1,10 +1,12 @@
 use combine::parser::{choice, combinator, repeat};
 use combine::stream::RangeStream;
-use combine::{optional, between, parser};
+use combine::{between, parser};
 
+use crate::nscript::{Type, ParamsList};
 use crate::tokenizer::*;
 
 use super::operations::{operation, assignment_operation};
+use super::statements::statement;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
@@ -59,9 +61,9 @@ pub enum Expression {
   LeftShiftAssign { name: String, value: Box<Expression> },
   RightShiftAssign { name: String, value: Box<Expression> },
 
-  // Fn { name: String, args: ParamsList, return_type: Option<Type>, body: Vec<Expression> },
+  Fn { name: String, args: ParamsList, return_type: Type, body: Vec<Expression> },
   Call { name: String, args: Vec<Expression> },
-  // Return(Box<Expression>),
+  Return(Box<Expression>),
 
   If { condition: Box<Expression>, then: Vec<Expression>, else_: Vec<Expression> },
   // While { condition: Box<Expression>, body: Vec<Expression> },
@@ -70,107 +72,15 @@ pub enum Expression {
   // Continue,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Type(pub String);
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ParamsList(pub Vec<(String, String)>);
-
 
 parser!{
   pub fn expression['src, I]()(I) -> Expression
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
     choice::choice((
-      combinator::attempt(if_()),
-      combinator::attempt(let_()),
-      combinator::attempt(var()),
-      combinator::attempt(call()),
+      combinator::attempt(statement()),
       combinator::attempt(assignment_operation()),
       combinator::attempt(operation()),
     ))
-  }
-}
-
-parser!{
-  pub fn let_['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
-
-    keyword("let").with((
-      identifier(),
-      optional( punctuator(":").with(type_()) )
-      .skip(punctuator("=")),
-      operation(),
-    ))
-    .map(|(name, type_, value)| Expression::Let {
-      name,
-      type_: match type_ {
-        Some(t) => Some(Type(t)),
-        None => None,
-      },
-      value: Box::new(value),
-    })
-  }
-}
-
-parser!{
-  pub fn var['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
-
-    keyword("var").with((
-      identifier(),
-      optional( punctuator(":").with(type_()) ),
-      optional( punctuator("=").with(operation()) ),
-    ))
-    .map(|(name, type_, value)| Expression::Var {
-      name,
-      type_: match type_ {
-        Some(t) => Some(Type(t)),
-        None => None,
-      },
-      value: match value {
-        Some(v) => Some(Box::new(v)),
-        None => None,
-      },
-    })
-  }
-}
-
-parser!{
-  pub fn call['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
-
-    (
-      identifier(),
-      between(
-        punctuator("("),punctuator(")"),
-        repeat::sep_end_by(operation(), punctuator(","))
-      ),
-    )
-    .map(|(name, args)| Expression::Call { name, args })
-  }
-}
-
-parser! {
-  pub fn if_['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
-
-    keyword("if").with((
-      operation(),
-      punctuator("{")
-        .with(repeat::sep_end_by(expression(), terminator()))
-        .skip(punctuator("}")),
-      optional(
-        keyword("else")
-        .with(punctuator("{")
-        .with(repeat::sep_end_by(expression(), terminator()))
-        .skip(punctuator("}")))
-      ),
-    ))
-    .map(|(condition, then, else_)| Expression::If {
-      condition: Box::new(condition),
-      then,
-      else_: else_.unwrap_or_else(|| vec![]),
-    })
   }
 }

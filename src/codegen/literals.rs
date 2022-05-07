@@ -1,4 +1,4 @@
-use crate::nscript::{any_value::{AnyValue, AnyType}, environment::Environment, state::StateType};
+use crate::nscript::{AnyValue, AnyType, Environment, StateType};
 
 pub fn integer<'ctx>(env: &mut Environment<'ctx>, value: i32) -> AnyValue<'ctx> {
   AnyValue::Integer(env.integer(value))
