@@ -23,15 +23,19 @@ pub fn if_<'ctx>(env: &mut Environment<'ctx>, condition: &Expression, then: &[Ex
   env.builder.build_conditional_branch(condition.into_boolean(), then_block, else_block.unwrap_or(merge_block));
 
   // Emit the then block
+  env.state.push_scope();
   env.builder.position_at_end(then_block);
   then.iter().for_each(|expr| { expr.codegen(env); });
   env.builder.build_unconditional_branch(merge_block);
+  env.state.pop_scope();
 
   // Emit the else block
   if let Some(else_block) = else_block {
+    env.state.push_scope();
     env.builder.position_at_end(else_block);
     else_.iter().for_each(|expr| { expr.codegen(env); });
     env.builder.build_unconditional_branch(merge_block);
+    env.state.pop_scope();
   }
 
   // Go to the merge block

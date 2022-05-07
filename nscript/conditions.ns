@@ -1,9 +1,14 @@
 var x = 0;
-if 5 == 5 {
+var y = 4;
+if 5 == 4 {
   x = 1;
   print(1);
+  print(y);
 } else {
   x = 2;
   print(2);
+  y = 6;
+  print(y);
 };
 print(x);
+print(y);
