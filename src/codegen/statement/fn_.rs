@@ -36,19 +36,28 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, 
   env.builder.position_at_end(function_block);
 
   // Add the parameters to the environment
-  function.get_params().iter()
+  function.get_params()
+    .iter()
     .zip(args.0.iter())
     .for_each(|(param, (name, type_))| {
       env.state.add_label(name.to_string(), (*param).into());
     });
 
   // Compile the function body
-  body.iter().for_each(|expr| { expr.codegen(env); });
-  env.builder.build_return(None);
-  env.state.pop_scope();
+  for expr in body {
+    expr.codegen(env);
+  }
+  
+  // Return null if the function is a void function
+  if let AnyTypeEnum::VoidType(_) = return_type {
+    env.builder.build_return(None);
+  }
 
-  // Return the function
+  // Finish the function
+  env.state.pop_scope();
   env.state.current_block = previous_block;
   env.builder.position_at_end(previous_block.expect("Parser error: No previous block"));
+
+  // Return the function
   fn_
 }

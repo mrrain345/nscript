@@ -49,6 +49,8 @@ impl Expression {
       Expression::Call { name, args } => call::call(env, name, args),
       Expression::Return(value) => statement::return_(env, value),
 
+      Expression::Class { name, properties } => statement::class(env, name, properties),
+
       _ => panic!("Parser error: unimplmented expression `{self:?}`"),
     }
   }

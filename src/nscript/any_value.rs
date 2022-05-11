@@ -1,7 +1,7 @@
 use combine::{Parser, Stream};
 use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum}, types::BasicTypeEnum};
 
-use super::type_::Type;
+use super::{type_::Type, Property};
 
 #[derive(Debug, Clone, Copy)]
 pub enum AnyType {
@@ -20,6 +20,7 @@ pub enum AnyValue<'ctx> {
   Null,
   Fn { fn_: FunctionValue<'ctx>, name: String, args: Vec<(String, Type)> },
   Ptr { ptr: PointerValue<'ctx>, type_: AnyType },
+  Class { name: String, properties: Vec<Property> },
 }
 
 impl<'ctx, Input> Parser<Input> for AnyValue<'ctx> 

@@ -2,13 +2,14 @@ use std::collections::HashMap;
 
 use inkwell::{values::{FunctionValue, PointerValue}, basic_block::BasicBlock};
 
-use super::{any_value::{AnyValue, AnyType}, type_::Type};
+use super::{any_value::{AnyValue, AnyType}, type_::Type, Property};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StateType {
   Label,
   Variable,
   Function,
+  Class,
 }
 
 #[derive(Debug)]
@@ -144,5 +145,22 @@ impl<'ctx> State<'ctx> {
   /// Changes the value of the function from any scope
   pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>, args: Vec<(String, Type)>) -> Option<AnyValue<'ctx>> {
     self.set(name.clone(), StateType::Function, AnyValue::Fn{ fn_: value, name, args })
+  }
+
+  // Classes
+
+  /// Gets the class from any scope
+  pub fn get_class(&self, name: &str) -> Option<AnyValue<'ctx>> {
+    self.get(name, Some(StateType::Class)).map(|(value, _)| value)
+  }
+
+  /// Adds a new class to the topmost scope
+  pub fn add_class(&mut self, name: String, properties: Vec<Property>) -> Option<AnyValue<'ctx>> {
+    self.add(name.clone(), StateType::Class, AnyValue::Class{ name, properties })
+  }
+
+  /// Changes the value of the class from any scope
+  pub fn set_class(&mut self, name: String, properties: Vec<Property>) -> Option<AnyValue<'ctx>> {
+    self.set(name.clone(), StateType::Class, AnyValue::Class{ name, properties })
   }
 }

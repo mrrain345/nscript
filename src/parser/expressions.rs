@@ -1,9 +1,8 @@
-use combine::parser::{choice, combinator, repeat};
+use combine::parser::{choice, combinator};
 use combine::stream::RangeStream;
-use combine::{between, parser};
+use combine::parser;
 
-use crate::nscript::{Type, ParamsList};
-use crate::tokenizer::*;
+use crate::nscript::{Type, ParamsList, Property};
 
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
@@ -70,6 +69,8 @@ pub enum Expression {
   // For { index: Option<String>, index_type: Option<Type>, iter: String, iter_type: Option<Type>, generator: Box<Expression>, body: Vec<Expression> },
   // Break,
   // Continue,
+
+  Class { name: String, properties: Vec<Property> }
 }
 
 

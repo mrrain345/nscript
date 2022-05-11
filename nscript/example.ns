@@ -1,43 +1,25 @@
-let a: Integer = 2
-let b: Integer = 3
-let c: Integer = a + b
+let a: Integer = 2;
+let b: Integer = 3;
+let c: Integer = a + b;
 
-let x: Number = 5.0
-let y: Number = 5.5
-let z: Number = x + y
+let x: Number = 5.0;
+let y: Number = 5.5;
+let z: Number = x + y;
 
-print(2 + 2)
+print(2 + 2);
 
 fn add(a: Integer, b: Integer) -> Integer {
-  return a + b
-}
+  return a + b;
+};
 
-print(add(a, b))
+print(add(a, b));
 
 fn fib(n: Integer) -> Integer {
   if n < 2 {
-    return n
+    return n;
   } else {
-    return fib(n - 1) + fib(n - 2)
-  }
-}
+    return fib(n - 1) + fib(n - 2);
+  };
+};
 
-print(fib(10))
-
-fn whileTest(n: Integer) {
-  var i: Integer = 0
-  while i < n {
-    print(i)
-    i = i + 1
-  }
-}
-
-whileTest(10)
-
-fn forTest() {
-  for i in 0..10 {
-    print(i)
-  }
-}
-
-forTest()
+print(fib(10));

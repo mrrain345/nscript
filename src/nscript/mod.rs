@@ -13,7 +13,7 @@ mod type_;
 pub use any_value::{AnyType, AnyValue};
 pub use state::{State, StateType};
 pub use environment::Environment;
-pub use type_::{Type, ParamsList};
+pub use type_::{Type, ParamsList, Property};
 
 use fn_print::fn_print;
 use fn_main::fn_main;

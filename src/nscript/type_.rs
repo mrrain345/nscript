@@ -63,3 +63,10 @@ impl Type {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParamsList(pub Vec<(String, Type)>);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Property {
+  pub name: String,
+  pub type_: Type,
+  pub modifiers: Option<Vec<String>>,
+}
