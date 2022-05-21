@@ -1,0 +1,21 @@
+class Vector {
+  x: Integer;
+  y: Integer;
+};
+
+class Test {
+  vec: Vector;
+  z: Integer;
+};
+
+var t = Test {
+  vec = Vector {
+    x = 10,
+    y = 20,
+  },
+  z = 30,
+};
+
+print(t.vec.x);
+print(t.vec.y);
+print(t.z);

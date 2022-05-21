@@ -27,6 +27,10 @@ impl<'ctx> Object<'ctx> {
         AnyValue::Integer(value) => env.builder.build_store(ptr, value),
         AnyValue::Number(value) => env.builder.build_store(ptr, value),
         AnyValue::Boolean(value) => env.builder.build_store(ptr, value),
+        AnyValue::Object(ref object) => {
+          let value = env.builder.build_load(object.struct_ptr(), property_name);
+          env.builder.build_store(ptr, value)
+        },
         _ => panic!("Parser error: invalid type of property `{property_name:?}` in class `{name:?}`", name=class.name_or_default()),
       };
     }

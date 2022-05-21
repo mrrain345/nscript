@@ -7,7 +7,7 @@ pub fn class<'ctx>(env: &mut Environment<'ctx>, name: &String, properties: &[par
   let props = properties.iter().map(|prop| {
     Property {
       name: prop.name.clone(),
-      type_: prop.type_.into_type().expect(format!("Failed to get type `{:?}`", prop.type_).as_str()),
+      type_: prop.type_.into_type(env).expect(format!("Failed to get type `{:?}`", prop.type_).as_str()),
       modifiers: prop.modifiers.clone(),
     }
   }).collect();

@@ -1,4 +1,4 @@
-use inkwell::types::{AnyTypeEnum, BasicTypeEnum};
+use inkwell::types::{AnyTypeEnum, BasicTypeEnum, StructType};
 
 use super::{Environment, AnyValue, Class};
 
@@ -68,6 +68,8 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::String => todo!(),
       AnyType::Boolean => env.context.i8_type().into(),
       AnyType::Null => env.context.void_type().into(),
+      AnyType::Class(class) => class.struct_type().into(),
+      AnyType::Object(class) => class.struct_type().into(),
       _ => panic!("Unsupported type"),
     }
   }
@@ -78,6 +80,8 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::Number => Some(env.context.f64_type().into()),
       AnyType::String => todo!(),
       AnyType::Boolean => Some(env.context.i8_type().into()),
+      AnyType::Object(class) => Some(class.struct_type().into()),
+      AnyType::Class(class) => Some(class.struct_type().into()),
       _ => None,
     }
   }
@@ -91,7 +95,8 @@ impl<'ctx> AnyType<'ctx> {
       (AnyType::String, AnyType::String) => true,
       (AnyType::Boolean, AnyType::Boolean) => true,
       (AnyType::Null, AnyType::Null) => true,
-      (AnyType::Object(name1), AnyType::Object(name2)) => name1 == name2,
+      (AnyType::Object(class1), AnyType::Object(class2)) => class1 == class2,
+      (AnyType::Class(class1), AnyType::Class(class2)) => class1 == class2,
       _ => false,
     }
   }
