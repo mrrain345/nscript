@@ -4,7 +4,7 @@ use crate::{parser::expressions::Expression, nscript::{AnyValue, Environment}};
 
 pub fn call<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[Expression]) -> AnyValue<'ctx> {
   // Get the function
-  let function = env.state.get_function(name);
+  let function = env.get_function(name);
   if function.is_none() {
     panic!("Parser error: Function {name} does not exist");
   }
@@ -34,7 +34,7 @@ pub fn call<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[Expression
       AnyValue::Number(value) if type_ == "Number" => fn_args.push(value.into()),
       AnyValue::Boolean(value) if type_ == "Boolean" => fn_args.push(value.into()),
       AnyValue::Null if type_ == "null" => fn_args.push(env.context.i32_type().const_int(0, false).into()),
-      _ => panic!("Parser error: invalid argument")
+      _ => panic!("Parser error: invalid argument `{arg:?}`, type: {type_}")
     }
   }
 

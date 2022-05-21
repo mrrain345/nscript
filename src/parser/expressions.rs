@@ -2,7 +2,7 @@ use combine::parser::{choice, combinator};
 use combine::stream::RangeStream;
 use combine::parser;
 
-use crate::nscript::{Type, ParamsList, Property};
+use crate::nscript::{Type, ParamsList, Property, PropertyValue};
 
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
@@ -70,7 +70,9 @@ pub enum Expression {
   // Break,
   // Continue,
 
-  Class { name: String, properties: Vec<Property> }
+  Class { name: String, properties: Vec<Property> },
+  Object { name: String, properties: Vec<PropertyValue> },
+  PropChain { object: Box<Expression>, chain: Vec<String> },
 }
 
 

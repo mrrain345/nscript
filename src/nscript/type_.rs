@@ -1,11 +1,14 @@
-use inkwell::types::{AnyTypeEnum, BasicMetadataTypeEnum};
+use inkwell::types::{AnyTypeEnum, BasicMetadataTypeEnum, BasicTypeEnum};
 
-use super::{environment::Environment, any_value::AnyType};
+use crate::parser::expressions::Expression;
+
+use super::{Environment, AnyType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Type(pub String);
 
 impl Type {
+
   pub fn is_null(&self) -> bool {
     self.0 == "null"
   }
@@ -37,7 +40,18 @@ impl Type {
     }
   }
 
-  pub fn into_llvm_basic_type<'ctx>(&self, env: &mut Environment<'ctx>) -> Option<BasicMetadataTypeEnum<'ctx>> {
+  pub fn into_llvm_basic_type<'ctx>(&self, env: &mut Environment<'ctx>) -> Option<BasicTypeEnum<'ctx>> {
+    match self.0.as_str() {
+      "null" => None,
+      "Integer" => Some(BasicTypeEnum::IntType(env.context.i32_type().into())),
+      "Number" => Some(BasicTypeEnum::FloatType(env.context.f64_type().into())),
+      // "String" => Some(BasicTypeEnum::PointerType(env.context.i8_type().ptr_type(env.context.i8_type().into()).into())),
+      "Boolean" => Some(BasicTypeEnum::IntType(env.context.bool_type().into())),
+      _ => None,
+    }
+  }
+
+  pub fn into_llvm_basic_metadata_type<'ctx>(&self, env: &mut Environment<'ctx>) -> Option<BasicMetadataTypeEnum<'ctx>> {
     match self.0.as_str() {
       "null" => None,
       "Integer" => Some(BasicMetadataTypeEnum::IntType(env.context.i32_type().into())),
@@ -48,14 +62,14 @@ impl Type {
     }
   }
 
-  pub fn to_type(&self) -> AnyType {
+  pub fn into_type(&self) -> Option<AnyType> {
     match self.0.as_str() {
-      "null" => AnyType::Null,
-      "Integer" => AnyType::Integer,
-      "Number" => AnyType::Number,
-      "String" => AnyType::String,
-      "Boolean" => AnyType::Boolean,
-      _ => panic!("Unknown type: {}", self.0),
+      "null" => Some(AnyType::Null),
+      "Integer" => Some(AnyType::Integer),
+      "Number" => Some(AnyType::Number),
+      "String" => Some(AnyType::String),
+      "Boolean" => Some(AnyType::Boolean),
+      _ => None,
     }
   }
 }
@@ -63,10 +77,3 @@ impl Type {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParamsList(pub Vec<(String, Type)>);
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Property {
-  pub name: String,
-  pub type_: Type,
-  pub modifiers: Option<Vec<String>>,
-}

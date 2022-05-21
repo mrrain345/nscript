@@ -10,6 +10,8 @@ pub mod expressions;
 mod operations;
 mod statements;
 mod call;
+mod object;
+mod prop_chain;
 
 use expressions::{expression, Expression};
 

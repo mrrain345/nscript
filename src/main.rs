@@ -1,4 +1,5 @@
 use std::env;
+use std::path::Path;
 use std::path::PathBuf;
 
 use inkwell::context::Context;
@@ -9,6 +10,7 @@ mod parser;
 mod tokenizer;
 mod nscript;
 mod codegen;
+pub mod append_list;
 
 fn main() {
   // Get the path to the file.
@@ -45,6 +47,9 @@ fn main() {
 
       // Compile the file.
       let main = compile(&mut env, &expressions);
+
+      // Save output LLVM IR to file.
+      env.module.print_to_file(Path::new("target/output.ll")).unwrap();
 
       // Run the main function.
       unsafe {

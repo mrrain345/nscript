@@ -1,9 +1,12 @@
 class Vector {
-  x: Number;
-  y: Number;
-}
-
-let v = Vector {
-  x = 1,
-  y = 2,
+  x: Integer;
+  y: Integer;
 };
+
+var v = Vector {
+  x = 10,
+  y = 20,
+};
+
+print(v.x);
+print(v.y);

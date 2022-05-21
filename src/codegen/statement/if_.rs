@@ -8,7 +8,7 @@ pub fn if_<'ctx>(env: &mut Environment<'ctx>, condition: &Expression, then: &[Ex
   }
   
   // Create the then block
-  let function_block = env.state.current_block.unwrap();
+  let function_block = env.current_block();
   let then_block = env.context.insert_basic_block_after(function_block, "then");
 
   // Create the else block

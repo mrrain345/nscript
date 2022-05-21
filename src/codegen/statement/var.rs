@@ -1,6 +1,8 @@
 use crate::{parser::expressions::{Expression}, nscript::{AnyValue, AnyType, Type, Environment}};
 
-pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type>, value: &Option<Box<Expression>>) -> AnyValue<'ctx> {
+use super::class;
+
+pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type>, value: Option<&Expression>) -> AnyValue<'ctx> {
   // if value.is_none() {
   //   if type_.is_none() {
   //     panic!("Parser error: you must specify a type or a value for variable `{name}`");
@@ -21,24 +23,28 @@ pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type
 
   // TODO: Check if type is compatible with value
   let (ptr, type_) = match value {
-    AnyValue::Integer(value) => {
-      let ptr = env.builder.build_alloca(env.context.i32_type(), name.as_str());
-      env.builder.build_store(ptr, value);
+    AnyValue::Integer(val) => {
+      let ptr = value.allocate(env);
+      env.builder.build_store(ptr, val);
       (ptr, AnyType::Integer)
     },
-    AnyValue::Number(value) => {
-      let ptr = env.builder.build_alloca(env.context.f64_type(), name.as_str());
-      env.builder.build_store(ptr, value);
+    AnyValue::Number(val) => {
+      let ptr = value.allocate(env);
+      env.builder.build_store(ptr, val);
       (ptr, AnyType::Number)
     },
-    AnyValue::Boolean(value) => {
-      let ptr = env.builder.build_alloca(env.context.bool_type(), name.as_str());
-      env.builder.build_store(ptr, value);
+    AnyValue::Boolean(val) => {
+      let ptr = value.allocate(env);
+      env.builder.build_store(ptr, val);
       (ptr, AnyType::Boolean)
+    },
+    AnyValue::Object(object) => {
+      let value = env.builder.build_load(object.struct_ptr(), object.class().name_or_default()).into_struct_value();
+      (object.struct_ptr(), AnyType::Object(object.class()))
     },
     _ => panic!("Parser error: invalid type `{type_:?}`")
   };
 
-  env.state.add_variable(name.into(), ptr, type_)
+  env.add_variable(name.into(), ptr, type_)
     .expect(format!("Variable `{name}` already exists").as_str())
 }

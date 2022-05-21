@@ -14,13 +14,13 @@ pub fn fn_main<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) ->
   
   // Create blocks
   let entry_block = env.context.append_basic_block(function, "entry");
-  env.state.current_block = Some(entry_block);
+  env.set_current_block(entry_block);
   
   // Get print function
   let print = env.module.get_function("print")?;
 
   // Add print function to the environment
-  env.state.add_function(
+  env.add_function(
     "print".into(),
     print,
     vec![

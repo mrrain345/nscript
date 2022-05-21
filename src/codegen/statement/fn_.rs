@@ -9,7 +9,7 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, 
   
   // Get the parameters types
   let params = args.0.iter().map(|(_, type_)| {
-    type_.into_llvm_basic_type(env)
+    type_.into_llvm_basic_metadata_type(env)
       .expect("Parser error: Invalid parameter type")
   }).collect::<Vec<_>>();
 
@@ -22,13 +22,13 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, 
   };
 
   // Create the function
-  let previous_block = env.state.current_block;
+  let previous_block = env.current_block();
   let function = env.module.add_function(name, fn_type, None);
   let function_block = env.context.append_basic_block(function, "entry");
-  env.state.current_block = Some(function_block);
+  env.set_current_block(function_block);
 
   // Add the function to the environment
-  let fn_ = env.state.add_function(name.to_string(), function, args.0.clone())
+  let fn_ = env.add_function(name.to_string(), function, args.0.clone())
     .expect("Parser error: Function already exists");
 
   // Create the function scope
@@ -40,7 +40,7 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, 
     .iter()
     .zip(args.0.iter())
     .for_each(|(param, (name, type_))| {
-      env.state.add_label(name.to_string(), (*param).into());
+      env.add_label(name.to_string(), (*param).into());
     });
 
   // Compile the function body
@@ -55,8 +55,8 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, 
 
   // Finish the function
   env.state.pop_scope();
-  env.state.current_block = previous_block;
-  env.builder.position_at_end(previous_block.expect("Parser error: No previous block"));
+  env.set_current_block(previous_block);
+  env.builder.position_at_end(previous_block);
 
   // Return the function
   fn_

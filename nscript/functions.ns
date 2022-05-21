@@ -3,7 +3,12 @@ fn add(a: Integer, b: Integer) -> Integer {
 };
 
 fn print_smth() {
+  fn add(a: Integer, b: Integer) -> Integer {
+    return a + b*2;
+  };
+
   print(add(40, 2));
 };
 
 print_smth();
+print(add(40, 2));

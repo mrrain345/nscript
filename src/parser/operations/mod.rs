@@ -6,6 +6,8 @@ use self::op9_logical::logical_or_operation;
 
 use super::call::call;
 use super::expressions::Expression;
+use super::object::object;
+use super::prop_chain::prop_chain;
 use super::tokenizer::*;
 
 // Operator precedence
@@ -45,10 +47,7 @@ parser! {
   pub fn operation['src, I]()(I) -> Expression
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
     
-    choice::choice((
-      attempt(call()),
-      logical_or_operation(),
-    ))
+    logical_or_operation()
   }
 }
 
@@ -83,8 +82,11 @@ parser! {
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
     choice::choice((
+      attempt(call()),
+      attempt(object()),
       parenthesis(),
       literal(),
+      attempt(prop_chain()),
       identifier().map(|s| Expression::Identifier(s)),
     ))
   }

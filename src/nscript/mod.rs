@@ -6,14 +6,20 @@ mod fn_print;
 mod fn_main;
 
 mod any_value;
+mod any_type;
 mod state;
 mod environment;
 mod type_;
+mod class;
+mod object;
 
-pub use any_value::{AnyType, AnyValue};
+pub use any_value::AnyValue;
+pub use any_type::AnyType;
 pub use state::{State, StateType};
 pub use environment::Environment;
-pub use type_::{Type, ParamsList, Property};
+pub use type_::{Type, ParamsList};
+pub use class::{Class, Property, PropertyValue};
+pub use object::Object;
 
 use fn_print::fn_print;
 use fn_main::fn_main;

@@ -9,6 +9,8 @@ mod statement;
 
 mod call;
 mod literals;
+mod object;
+mod prop_chain;
 
 impl Expression {
   pub fn codegen<'ctx>(&self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
@@ -41,7 +43,7 @@ impl Expression {
       Expression::GreaterOrEqual(left, right) => comparison::greater_or_equal(env, left, right),
 
       Expression::Let { name, type_, value } => statement::let_(env, name, type_, value),
-      Expression::Var { name, type_, value } => statement::var(env, name, type_, value),
+      Expression::Var { name, type_, value } => statement::var(env, name, type_, value.as_deref()),
       Expression::Assign { name, value } => assignment::assign(env, name, value),
       Expression::If { condition, then, else_ } => statement::if_(env, condition, then, else_),
       
@@ -50,6 +52,8 @@ impl Expression {
       Expression::Return(value) => statement::return_(env, value),
 
       Expression::Class { name, properties } => statement::class(env, name, properties),
+      Expression::Object { name, properties } => object::object(env, name, properties),
+      Expression::PropChain { object, chain } => prop_chain::prop_chain(env, object, chain),
 
       _ => panic!("Parser error: unimplmented expression `{self:?}`"),
     }

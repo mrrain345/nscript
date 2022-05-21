@@ -1,26 +1,18 @@
 use combine::{Parser, Stream};
-use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum}, types::BasicTypeEnum};
+use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum, StructValue}, types::{BasicTypeEnum, StructType}};
 
-use super::{type_::Type, Property};
+use super::{type_::Type, Property, PropertyValue, Environment, any_type::AnyType, Class, Object};
 
-#[derive(Debug, Clone, Copy)]
-pub enum AnyType {
-  Integer,
-  Number,
-  String,
-  Boolean,
-  Null,
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AnyValue<'ctx> {
   Integer(IntValue<'ctx>),
   Number(FloatValue<'ctx>),
   Boolean(IntValue<'ctx>),
   Null,
   Fn { fn_: FunctionValue<'ctx>, name: String, args: Vec<(String, Type)> },
-  Ptr { ptr: PointerValue<'ctx>, type_: AnyType },
-  Class { name: String, properties: Vec<Property> },
+  Ptr { ptr: PointerValue<'ctx>, type_: AnyType<'ctx> },
+  Class(&'ctx Class<'ctx>),
+  Object(Box<Object<'ctx>>),
 }
 
 impl<'ctx, Input> Parser<Input> for AnyValue<'ctx> 
@@ -32,6 +24,31 @@ where
 }
 
 impl<'ctx> AnyValue<'ctx> {
+  pub fn allocate(&self, env: &mut Environment<'ctx>) -> PointerValue<'ctx> {
+    match self {
+      AnyValue::Integer(value) => env.builder.build_alloca(value.get_type(), "Integer"),
+      AnyValue::Number(value) => env.builder.build_alloca(value.get_type(), "Number"),
+      AnyValue::Boolean(value) => env.builder.build_alloca(value.get_type(), "Boolean"),
+      AnyValue::Null => env.builder.build_alloca(env.context.bool_type(), "null"),
+      AnyValue::Ptr { ptr, .. } => env.builder.build_alloca(ptr.get_type(), "ptr"),
+      AnyValue::Object(object) => env.builder.build_alloca(object.class().struct_type(), "Object"),
+      _ => panic!("Invalid type")
+    }
+  }
+
+  pub fn get_type(&self) -> AnyType {
+    match self {
+      AnyValue::Integer(_) => AnyType::Integer,
+      AnyValue::Number(_) => AnyType::Number,
+      AnyValue::Boolean(_) => AnyType::Boolean,
+      AnyValue::Null => AnyType::Null,
+      AnyValue::Fn { .. } => AnyType::Function,
+      AnyValue::Ptr { type_, .. } => type_.clone(),
+      AnyValue::Class(class) => AnyType::Class(class),
+      AnyValue::Object(object) => AnyType::Object(object.class()),
+    }
+  }
+
   pub fn is_integer(&self) -> bool {
     if let AnyValue::Integer(_) = self {true} else {false}
   }
@@ -46,6 +63,10 @@ impl<'ctx> AnyValue<'ctx> {
 
   pub fn is_null(&self) -> bool {
     if let AnyValue::Null = self {true} else {false}
+  }
+
+  pub fn is_object(&self) -> bool {
+    if let AnyValue::Object { .. } = self {true} else {false}
   }
 
   pub fn is_function(&self) -> bool {
@@ -76,6 +97,20 @@ impl<'ctx> AnyValue<'ctx> {
   pub fn into_function(self) -> FunctionValue<'ctx> {
     match self {
       AnyValue::Fn{fn_, ..} => fn_,
+      _ => panic!("Invalid type")
+    }
+  }
+
+  pub fn into_class(self) -> &'ctx Class<'ctx> {
+    match self {
+      AnyValue::Class(class) => class,
+      _ => panic!("Invalid type")
+    }
+  }
+
+  pub fn into_object(self) -> Box<Object<'ctx>> {
+    match self {
+      AnyValue::Object(object) => object,
       _ => panic!("Invalid type")
     }
   }

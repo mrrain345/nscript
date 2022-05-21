@@ -1,0 +1,77 @@
+use inkwell::types::StructType;
+
+use crate::parser::expressions::Expression;
+
+use super::{AnyType, Environment, Type};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Class<'ctx> {
+  name: Option<String>,
+  struct_type: StructType<'ctx>,
+  properties: Vec<Property>,
+}
+
+impl<'ctx> Class<'ctx> {
+  pub fn new(env: &mut Environment<'ctx>, name: Option<String>, properties: Vec<Property>) -> Self {
+    let struct_type = env.context.struct_type(
+      &properties
+        .iter()
+        .map(|p| p.type_.into_llvm_basic_type(env).expect(format!("Failed to get basic type `{:?}`", p.type_).as_str()))
+        .collect::<Vec<_>>(),
+      false,
+    );
+
+    Class {
+      name,
+      struct_type,
+      properties,
+    }
+  }
+
+  pub fn name(&self) -> Option<&str> {
+    self.name.as_deref()
+  }
+
+  pub fn name_or_default(&self) -> &str {
+    self.name.as_deref().unwrap_or("<class>")
+  }
+
+  pub fn struct_type(&self) -> StructType<'ctx> {
+    self.struct_type.clone()
+  }
+
+  pub fn position(&self, name: &str) -> Option<usize> {
+    self.properties.iter().position(|prop| prop.name == name)
+  }
+
+  pub fn property(&self, name: &str) -> Option<&Property> {
+    self.properties.iter().find(|prop| prop.name == name)
+  }
+
+  pub fn get_property(&self, index: usize) -> &Property {
+    &self.properties[index]
+  }
+
+  pub fn properties_len(&self) -> usize {
+    self.properties.len()
+  }
+
+  pub fn properties(&self) -> &[Property] {
+    &self.properties
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Property {
+  pub name: String,
+  pub type_: Type,
+  pub modifiers: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PropertyValue {
+  pub name: String,
+  pub type_: Option<Type>,
+  pub modifiers: Option<Vec<String>>,
+  pub value: Expression,
+}
