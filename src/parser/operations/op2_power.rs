@@ -1,7 +1,7 @@
 use combine::{parser::repeat, RangeStream};
 use combine::parser;
 
-use crate::parser::expressions::Expression;
+use crate::parser::Expression;
 use crate::tokenizer::power_operator;
 
 use super::op1_unitary::unitary_operation;

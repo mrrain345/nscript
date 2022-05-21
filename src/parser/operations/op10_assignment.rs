@@ -1,7 +1,7 @@
 use combine::RangeStream;
 use combine::parser;
 
-use crate::parser::expressions::Expression;
+use crate::parser::Expression;
 use crate::tokenizer::{assignment_operator, identifier};
 
 use super::op9_logical::logical_and_operation;

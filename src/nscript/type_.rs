@@ -1,7 +1,5 @@
 use inkwell::types::{AnyTypeEnum, BasicMetadataTypeEnum, BasicTypeEnum};
 
-use crate::parser::expressions::Expression;
-
 use super::{Environment, AnyType};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -62,7 +60,7 @@ impl Type {
     }
   }
 
-  pub fn into_type(&self) -> Option<AnyType> {
+  pub fn into_type<'ctx>(&self) -> Option<AnyType<'ctx>> {
     match self.0.as_str() {
       "null" => Some(AnyType::Null),
       "Integer" => Some(AnyType::Integer),

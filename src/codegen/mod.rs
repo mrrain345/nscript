@@ -1,4 +1,4 @@
-use crate::{nscript::{Environment, AnyValue}, parser::expressions::Expression};
+use crate::{nscript::{Environment, AnyValue}, parser::Expression};
 
 mod arithmetic;
 mod assignment;

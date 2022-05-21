@@ -1,6 +1,6 @@
 use inkwell::values::BasicValueEnum;
 
-use crate::{parser::expressions::{Expression}, nscript::{AnyValue, Environment}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
 pub fn return_<'ctx>(env: &mut Environment<'ctx>, value: &Expression) -> AnyValue<'ctx> {
   let value = value.codegen(env);

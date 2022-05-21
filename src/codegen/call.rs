@@ -1,6 +1,6 @@
 use inkwell::values::BasicValueEnum;
 
-use crate::{parser::expressions::Expression, nscript::{AnyValue, Environment}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
 pub fn call<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[Expression]) -> AnyValue<'ctx> {
   // Get the function

@@ -1,6 +1,6 @@
 use inkwell::types::AnyTypeEnum;
 
-use crate::{parser::expressions::Expression, nscript::{AnyValue, Environment, Type, ParamsList}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment, Type, ParamsList}};
 
 pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &ParamsList, return_type: &Type, body: &[Expression]) -> AnyValue<'ctx> {
   // Get the return type

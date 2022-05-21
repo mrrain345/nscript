@@ -1,18 +1,16 @@
 use inkwell::types::StructType;
 
-use crate::parser::expressions::Expression;
-
-use super::{AnyType, Environment, Type};
+use super::{AnyType, Environment};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Class<'ctx> {
   name: Option<String>,
   struct_type: StructType<'ctx>,
-  properties: Vec<Property>,
+  properties: Vec<Property<'ctx>>,
 }
 
 impl<'ctx> Class<'ctx> {
-  pub fn new(env: &mut Environment<'ctx>, name: Option<String>, properties: Vec<Property>) -> Self {
+  pub fn new(env: &mut Environment<'ctx>, name: Option<String>, properties: Vec<Property<'ctx>>) -> Self {
     let struct_type = env.context.struct_type(
       &properties
         .iter()
@@ -62,16 +60,8 @@ impl<'ctx> Class<'ctx> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Property {
+pub struct Property<'ctx> {
   pub name: String,
-  pub type_: Type,
+  pub type_: AnyType<'ctx>,
   pub modifiers: Option<Vec<String>>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PropertyValue {
-  pub name: String,
-  pub type_: Option<Type>,
-  pub modifiers: Option<Vec<String>>,
-  pub value: Expression,
 }

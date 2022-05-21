@@ -1,7 +1,7 @@
 use combine::{Parser, Stream};
 use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum, StructValue}, types::{BasicTypeEnum, StructType}};
 
-use super::{type_::Type, Property, PropertyValue, Environment, any_type::AnyType, Class, Object};
+use super::{type_::Type, Environment, any_type::AnyType, Class, Object};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnyValue<'ctx> {

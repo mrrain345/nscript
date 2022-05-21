@@ -2,8 +2,8 @@ use combine::parser::repeat;
 use combine::{parser, RangeStream, optional};
 
 use crate::nscript::ParamsList;
-use crate::parser::expressions::expression;
-use crate::{parser::expressions::Expression, nscript::Type};
+use crate::parser::{Expression, expression};
+use crate::nscript::Type;
 use crate::tokenizer::*;
 
 parser! {

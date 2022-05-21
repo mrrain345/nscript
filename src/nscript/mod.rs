@@ -1,6 +1,6 @@
 use inkwell::{execution_engine::JitFunction, OptimizationLevel};
 
-use crate::parser::expressions::Expression;
+use crate::parser::Expression;
 
 mod fn_print;
 mod fn_main;
@@ -18,7 +18,7 @@ pub use any_type::AnyType;
 pub use state::{State, StateType};
 pub use environment::Environment;
 pub use type_::{Type, ParamsList};
-pub use class::{Class, Property, PropertyValue};
+pub use class::{Class, Property};
 pub use object::Object;
 
 use fn_print::fn_print;

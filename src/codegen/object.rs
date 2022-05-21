@@ -1,4 +1,4 @@
-use crate::{nscript::{AnyValue, Environment, PropertyValue, Object}};
+use crate::{nscript::{AnyValue, Environment, Object}, parser::PropertyValue};
 
 pub fn object<'ctx>(env: &mut Environment<'ctx>, class_name: &String, properties: &[PropertyValue]) -> AnyValue<'ctx> {
   // Get the object's Class

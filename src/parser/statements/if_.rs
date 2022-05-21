@@ -1,8 +1,8 @@
 use combine::{parser::repeat, RangeStream, optional};
 use combine::parser;
 
-use crate::parser::expressions::expression;
-use crate::{parser::{expressions::Expression, operations::operation}};
+use crate::parser::expression;
+use crate::{parser::{Expression, operations::operation}};
 use crate::tokenizer::*;
 
 parser! {

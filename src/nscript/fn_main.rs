@@ -1,4 +1,4 @@
-use crate::parser::expressions::Expression;
+use crate::parser::Expression;
 
 use super::{Environment, Type};
 

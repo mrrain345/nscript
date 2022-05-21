@@ -6,14 +6,14 @@ use combine::stream::RangeStream;
 use crate::tokenizer::terminator;
 use super::tokenizer;
 
-pub mod expressions;
+mod expressions;
 mod operations;
 mod statements;
 mod call;
 mod object;
 mod prop_chain;
 
-use expressions::{expression, Expression};
+pub use expressions::{expression, Expression, Property, PropertyValue};
 
 pub fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Expression>> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {

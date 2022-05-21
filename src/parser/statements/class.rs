@@ -1,7 +1,7 @@
 use combine::{parser::repeat, RangeStream};
 use combine::parser;
 
-use crate::{parser::expressions::Expression, nscript::{Type, Property}};
+use crate::{parser::{Expression,Property}, nscript::{Type}};
 use crate::tokenizer::*;
 
 parser! {

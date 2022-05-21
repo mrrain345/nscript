@@ -1,7 +1,7 @@
 use combine::{parser::choice, RangeStream};
 use combine::parser;
 
-use crate::parser::expressions::Expression;
+use crate::parser::Expression;
 use crate::tokenizer::unitary_operator;
 
 use super::{highest_operation, operation};

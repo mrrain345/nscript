@@ -1,6 +1,6 @@
 use inkwell::values::{StructValue, PointerValue};
 
-use super::{PropertyValue, Class, AnyValue, Environment, AnyType};
+use super::{Class, AnyValue, Environment, AnyType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Object<'ctx> {
@@ -48,7 +48,7 @@ impl<'ctx> Object<'ctx> {
         let property_name = class.get_property(index).name.as_ref();
         let property_value = env.builder.build_extract_value(struct_value, index as u32, property_name).unwrap();
 
-        match property.type_.into_type().unwrap() {
+        match property.type_ {
           AnyType::Integer => AnyValue::Integer(property_value.into_int_value()),
           AnyType::Number => AnyValue::Number(property_value.into_float_value()),
           AnyType::Boolean => AnyValue::Boolean(property_value.into_int_value()),

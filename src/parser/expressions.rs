@@ -2,7 +2,7 @@ use combine::parser::{choice, combinator};
 use combine::stream::RangeStream;
 use combine::parser;
 
-use crate::nscript::{Type, ParamsList, Property, PropertyValue};
+use crate::nscript::{Type, ParamsList};
 
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
@@ -73,6 +73,21 @@ pub enum Expression {
   Class { name: String, properties: Vec<Property> },
   Object { name: String, properties: Vec<PropertyValue> },
   PropChain { object: Box<Expression>, chain: Vec<String> },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Property {
+  pub name: String,
+  pub type_: Type,
+  pub modifiers: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PropertyValue {
+  pub name: String,
+  pub type_: Option<Type>,
+  pub modifiers: Option<Vec<String>>,
+  pub value: Expression,
 }
 
 

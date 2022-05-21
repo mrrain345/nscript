@@ -1,6 +1,4 @@
-use crate::{parser::expressions::{Expression}, nscript::{AnyValue, AnyType, Type, Environment}};
-
-use super::class;
+use crate::{parser::Expression, nscript::{AnyValue, AnyType, Type, Environment}};
 
 pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type>, value: Option<&Expression>) -> AnyValue<'ctx> {
   // if value.is_none() {

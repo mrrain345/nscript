@@ -1,4 +1,4 @@
-use crate::{parser::expressions::Expression, nscript::{AnyValue, Environment}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
 pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain: &[String]) -> AnyValue<'ctx> {
   // Get the object
@@ -17,8 +17,7 @@ pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain:
         let positon = class.position(property)
           .expect(format!("Property `{property}` not found").as_str());
         
-        let prop = class.get_property(positon);
-        let type_ = prop.type_.into_type().expect("Invalid type");
+        let type_ = class.get_property(positon).type_;
         
         let struct_value = env.builder.build_load(ptr, class.name_or_default()).into_struct_value();
         let val = env.builder.build_extract_value(struct_value, positon as u32, &property).unwrap();

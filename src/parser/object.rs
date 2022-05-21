@@ -1,8 +1,7 @@
 use combine::{parser::repeat, RangeStream};
 use combine::{parser, between};
 
-use crate::nscript::PropertyValue;
-use crate::parser::expressions::Expression;
+use crate::parser::{Expression,PropertyValue};
 use crate::tokenizer::{identifier, punctuator};
 
 use super::operations::operation;

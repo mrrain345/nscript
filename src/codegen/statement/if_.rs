@@ -1,4 +1,4 @@
-use crate::{nscript::{Environment, AnyValue}, parser::expressions::Expression};
+use crate::{nscript::{Environment, AnyValue}, parser::Expression};
 
 pub fn if_<'ctx>(env: &mut Environment<'ctx>, condition: &Expression, then: &[Expression], else_: &[Expression]) -> AnyValue<'ctx> {
   let condition = condition.codegen(env);
