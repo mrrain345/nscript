@@ -36,6 +36,16 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
+  pub fn deref(self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+    if self.is_ptr() {
+      let (ptr, type_) = self.into_ptr();
+      let value = env.builder.build_load(ptr, "deref");
+      AnyValue::from_basic_value(type_, value)
+    } else {
+      self
+    }
+  }
+
   pub fn get_type(&self) -> AnyType {
     match self {
       AnyValue::Integer(_) => AnyType::Integer,
@@ -71,6 +81,14 @@ impl<'ctx> AnyValue<'ctx> {
 
   pub fn is_function(&self) -> bool {
     if let AnyValue::Fn {..} = self {true} else {false}
+  }
+
+  pub fn is_class(&self) -> bool {
+    if let AnyValue::Class(_) = self {true} else {false}
+  }
+
+  pub fn is_ptr(&self) -> bool {
+    if let AnyValue::Ptr {..} = self {true} else {false}
   }
 
   pub fn into_integer(self) -> IntValue<'ctx> {
@@ -111,6 +129,23 @@ impl<'ctx> AnyValue<'ctx> {
   pub fn into_object(self) -> Box<Object<'ctx>> {
     match self {
       AnyValue::Object(object) => object,
+      _ => panic!("Invalid type")
+    }
+  }
+
+  pub fn into_ptr(self) -> (PointerValue<'ctx>, AnyType<'ctx>) {
+    match self {
+      AnyValue::Ptr { ptr, type_ } => (ptr, type_),
+      _ => panic!("Invalid type")
+    }
+  }
+
+  pub fn from_basic_value(type_: AnyType<'ctx>, value: BasicValueEnum<'ctx>) -> AnyValue<'ctx> {
+    match type_ {
+      AnyType::Integer => AnyValue::Integer(value.into_int_value()),
+      AnyType::Number => AnyValue::Number(value.into_float_value()),
+      AnyType::Boolean => AnyValue::Boolean(value.into_int_value()),
+      AnyType::Null => AnyValue::Null,
       _ => panic!("Invalid type")
     }
   }

@@ -1,4 +1,4 @@
-use inkwell::types::{AnyTypeEnum, BasicTypeEnum, StructType};
+use inkwell::types::{AnyTypeEnum, BasicTypeEnum};
 
 use super::{Environment, AnyValue, Class};
 
@@ -109,6 +109,31 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::Boolean => AnyValue::Boolean(env.boolean(false)),
       AnyType::Null => AnyValue::Null,
       _ => panic!("default called on non-primitive type"),
+    }
+  }
+
+  pub fn into_value(self, env: &mut Environment<'ctx>, value: AnyValue<'ctx>) -> AnyValue<'ctx> {
+    match (self, value) {
+      (AnyType::Integer, AnyValue::Integer(value)) => AnyValue::Integer(value),
+      (AnyType::Number, AnyValue::Number(value)) => AnyValue::Number(value),
+      // (AnyType::String, AnyValue::String(value)) => AnyValue::String(value),
+      (AnyType::Boolean, AnyValue::Boolean(value)) => AnyValue::Boolean(value),
+      (AnyType::Null, AnyValue::Null) => AnyValue::Null,
+      // (AnyType::Object(class), AnyValue::Object(value)) => {
+      //   if class.is_instance(value) {
+      //     AnyValue::Object(value)
+      //   } else {
+      //     panic!("Invalid object type")
+      //   }
+      // }
+      // (AnyType::Class(class), AnyValue::Object(value)) => {
+      //   if class.is_instance(value) {
+      //     AnyValue::Object(value)
+      //   } else {
+      //     panic!("Invalid object type")
+      //   }
+      // }
+      _ => panic!("Invalid type"),
     }
   }
 }

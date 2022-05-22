@@ -2,7 +2,8 @@ use combine::RangeStream;
 use combine::parser;
 
 use crate::parser::Expression;
-use crate::tokenizer::{assignment_operator, identifier};
+use crate::parser::prop_chain::prop_chain;
+use crate::tokenizer::{assignment_operator};
 
 use super::op9_logical::logical_and_operation;
 
@@ -13,23 +14,23 @@ parser! {
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
     (
-      identifier(),
+      prop_chain(),
       assignment_operator(),
       logical_and_operation(), // allows to nest higher-order operations
-    ).map(|(name, op, value)| {
+    ).map(|(ptr, op, value)| {
       match op {
-        "=" => Expression::Assign { name, value: Box::new(value) },
-        "+=" => Expression::AddAssign { name, value: Box::new(value) },
-        "-=" => Expression::SubAssign { name, value: Box::new(value) },
-        "*=" => Expression::MulAssign { name, value: Box::new(value) },
-        "/=" => Expression::DivAssign { name, value: Box::new(value) },
-        "%=" => Expression::ModuloAssign { name, value: Box::new(value) },
-        "**=" => Expression::PowerAssign { name, value: Box::new(value) },
-        "<<=" => Expression::LeftShiftAssign { name, value: Box::new(value) },
-        ">>=" => Expression::RightShiftAssign { name, value: Box::new(value) },
-        "&=" => Expression::BitwiseAndAssign { name, value: Box::new(value) },
-        "^=" => Expression::BitwiseXorAssign { name, value: Box::new(value) },
-        "|=" => Expression::BitwiseOrAssign { name, value: Box::new(value) },
+        "=" => Expression::Assign { ptr: Box::new(ptr), value: Box::new(value) },
+        "+=" => Expression::AddAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "-=" => Expression::SubAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "*=" => Expression::MulAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "/=" => Expression::DivAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "%=" => Expression::ModuloAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "**=" => Expression::PowerAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "<<=" => Expression::LeftShiftAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        ">>=" => Expression::RightShiftAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "&=" => Expression::BitwiseAndAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "^=" => Expression::BitwiseXorAssign { ptr: Box::new(ptr), value: Box::new(value) },
+        "|=" => Expression::BitwiseOrAssign { ptr: Box::new(ptr), value: Box::new(value) },
         _ => unreachable!(),
       }
     })

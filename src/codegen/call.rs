@@ -25,9 +25,17 @@ pub fn call<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[Expression
   // Get the function arguments
   let mut fn_args = Vec::new();
 
-  for (arg, (_, type_)) in args.iter().zip(arguments.iter()) {
+  for (arg, (arg_name, type_)) in args.iter().zip(arguments.iter()) {
     let arg = arg.codegen(env);
     let type_ = &type_.0;
+
+    // If argument is a pointer, get the value
+    let arg = if arg.is_ptr() {
+      let (ptr, type_) = arg.into_ptr();
+      AnyValue::from_basic_value(type_, env.builder.build_load(ptr, arg_name))
+    } else {
+      arg
+    };
 
     match arg {
       AnyValue::Integer(value) if type_ == "Integer" => fn_args.push(value.into()),

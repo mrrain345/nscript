@@ -1,12 +1,18 @@
-use crate::{parser::Expression, nscript::{{AnyValue, AnyType}, Environment}};
+use crate::{parser::Expression, nscript::{{AnyValue}, Environment}};
 
-pub fn assign<'ctx>(env: &mut Environment<'ctx>, name: &String, value: &Expression) -> AnyValue<'ctx> {
+pub fn assign<'ctx>(env: &mut Environment<'ctx>, ptr: &Expression, value: &Expression) -> AnyValue<'ctx> {
+  let ptr = ptr.codegen(env);
   let value = value.codegen(env);
 
-  let (ptr, type_) = match env.get_variable(name) {
-    Some(AnyValue::Ptr{ ptr, type_ }) => (ptr, type_),
-    _ => panic!("Parser error: variable `{name}` not found"),
-  };
+  if !ptr.is_ptr() {
+    panic!("Invalid pointer `{ptr:?}`");
+  }
+
+  let (ptr, type_) = ptr.into_ptr();
+
+  if type_ != value.get_type() {
+    panic!("Type mismatch: cannot assign `{value:?}` to `{ptr:?}`", value = value, ptr = ptr);
+  }
 
   match value {
     AnyValue::Integer(value) => {
@@ -21,6 +27,8 @@ pub fn assign<'ctx>(env: &mut Environment<'ctx>, name: &String, value: &Expressi
     _ => panic!("Parser error: invalid type `{value:?}`")
   }
 
-  env.set_variable(name.into(), ptr, type_)
-    .expect(format!("Variable `{name}` doesn't exist").as_str())
+  value
+
+  // env.set_variable(name.into(), ptr, type_)
+  //   .expect(format!("Variable `{name}` doesn't exist").as_str())
 }

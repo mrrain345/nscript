@@ -44,7 +44,7 @@ impl Expression {
 
       Expression::Let { name, type_, value } => statement::let_(env, name, type_, value),
       Expression::Var { name, type_, value } => statement::var(env, name, type_, value.as_deref()),
-      Expression::Assign { name, value } => assignment::assign(env, name, value),
+      Expression::Assign { ptr, value } => assignment::assign(env, ptr, value),
       Expression::If { condition, then, else_ } => statement::if_(env, condition, then, else_),
       
       Expression::Fn { name, args, return_type, body } => statement::fn_(env, name, args, return_type, body),

@@ -3,8 +3,8 @@ use inkwell::{FloatPredicate, IntPredicate};
 use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
 pub fn equal<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
-  let left = left.codegen(env);
-  let right = right.codegen(env);
+  let left = left.codegen(env).deref(env);
+  let right = right.codegen(env).deref(env);
 
   match (left, right) {
     // Integer == Integer

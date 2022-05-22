@@ -12,6 +12,7 @@ mod statements;
 mod call;
 mod object;
 mod prop_chain;
+mod identifier;
 
 pub use expressions::{expression, Expression, Property, PropertyValue};
 

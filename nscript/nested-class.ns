@@ -19,3 +19,10 @@ var t = Test {
 print(t.vec.x);
 print(t.vec.y);
 print(t.z);
+
+t.z = 5;
+t.vec.x = 15;
+
+print(t.vec.x);
+print(t.vec.y);
+print(t.z);

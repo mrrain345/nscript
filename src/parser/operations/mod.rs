@@ -1,14 +1,15 @@
-use combine::parser::{choice, repeat, sequence};
+use combine::parser::{choice, sequence};
 use combine::stream::RangeStream;
-use combine::{parser, attempt, between};
+use combine::{parser, attempt};
 
 use self::op9_logical::logical_or_operation;
 
 use super::call::call;
 use super::expressions::Expression;
+use super::identifier::identifier;
 use super::object::object;
 use super::prop_chain::prop_chain;
-use super::tokenizer::*;
+use super::{tokenizer::*};
 
 // Operator precedence
 // Category         | Operator    | Associativity
@@ -87,7 +88,7 @@ parser! {
       parenthesis(),
       literal(),
       attempt(prop_chain()),
-      identifier().map(|s| Expression::Identifier(s)),
+      identifier(),
     ))
   }
 }

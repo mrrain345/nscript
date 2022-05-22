@@ -1,9 +1,10 @@
 use combine::{parser::repeat, RangeStream};
-use combine::parser;
+use combine::{parser, optional};
 
 use crate::parser::Expression;
-use crate::tokenizer::{identifier, punctuator};
+use crate::tokenizer::{punctuator, self};
 
+use super::identifier::identifier;
 use super::operations::operation;
 
 parser! {
@@ -11,11 +12,15 @@ parser! {
   where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
 
     (
-      identifier().skip(punctuator(".")), // object name
-      repeat::sep_by1(
-        identifier(), // property name
-        punctuator("."))
+      identifier(), // object name
+      optional(
+        punctuator(".")
+        .with(repeat::sep_by1(
+          tokenizer::identifier(), // property name
+          punctuator(".")
+        ))
+      )
     )
-    .map(|(object, chain): (_, Vec<_>)| Expression::PropChain { object: Box::new(Expression::Identifier(object)), chain })
+    .map(|(object, chain): (_, Option<Vec<_>>)| Expression::PropChain { object: Box::new(object), chain: chain.unwrap_or_default() })
   }
 }
