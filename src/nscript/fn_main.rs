@@ -1,6 +1,6 @@
 use crate::parser::Expression;
 
-use super::{Environment, Type};
+use super::{Environment, AnyType, function, Function};
 
 pub fn fn_main<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) -> Option<()> {
   let name = "main";
@@ -19,14 +19,16 @@ pub fn fn_main<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) ->
   // Get print function
   let print = env.module.get_function("print")?;
 
-  // Add print function to the environment
-  env.add_function(
-    "print".into(),
+  // Create the function object
+  let function = Function::new(
     print,
-    vec![
-      ("value".into(), Type("Integer".into())),
-    ],
+    Some("print".to_owned()),
+    vec![("value".into(), AnyType::Integer)],
+    AnyType::Null
   );
+
+  // Add print function to the environment
+  env.add_function("print".into(), function);
   
   // --- Entry block ---
   env.builder.position_at_end(entry_block);

@@ -1,7 +1,6 @@
 use combine::parser::repeat;
 use combine::{parser, RangeStream, optional};
 
-use crate::nscript::ParamsList;
 use crate::parser::{Expression, expression};
 use crate::nscript::Type;
 use crate::tokenizer::*;
@@ -29,7 +28,7 @@ parser! {
     ))
     .map(|(name, args, type_, body)| Expression::Fn {
       name,
-      args: ParamsList(args),
+      args,
       return_type: type_.unwrap_or_else(|| Type("null".to_string())),
       body,
     })

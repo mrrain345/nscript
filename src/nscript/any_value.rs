@@ -1,7 +1,9 @@
-use combine::{Parser, Stream};
-use inkwell::{values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum, StructValue}, types::{BasicTypeEnum, StructType}};
+use std::ops::Deref;
 
-use super::{type_::Type, Environment, any_type::AnyType, Class, Object};
+use combine::{Parser, Stream};
+use inkwell::values::{IntValue, FloatValue, FunctionValue, PointerValue, BasicValueEnum, BasicMetadataValueEnum};
+
+use super::{Environment, AnyType, Class, Object, Function};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnyValue<'ctx> {
@@ -9,10 +11,10 @@ pub enum AnyValue<'ctx> {
   Number(FloatValue<'ctx>),
   Boolean(IntValue<'ctx>),
   Null,
-  Fn { fn_: FunctionValue<'ctx>, name: String, args: Vec<(String, Type)> },
+  Fn(Box<Function<'ctx>>),
   Ptr { ptr: PointerValue<'ctx>, type_: AnyType<'ctx> },
-  Class(&'ctx Class<'ctx>),
   Object(Box<Object<'ctx>>),
+  Class(&'ctx Class<'ctx>),
 }
 
 impl<'ctx, Input> Parser<Input> for AnyValue<'ctx> 
@@ -40,9 +42,34 @@ impl<'ctx> AnyValue<'ctx> {
     if self.is_ptr() {
       let (ptr, type_) = self.into_ptr();
       let value = env.builder.build_load(ptr, "deref");
-      AnyValue::from_basic_value(type_, value)
+      AnyValue::from_basic_value(&type_, value)
     } else {
       self
+    }
+  }
+
+  pub fn silent_cast(&self, env: &mut Environment<'ctx>, to: &AnyType) -> Option<AnyValue<'ctx>> {
+    match (self, *to) {
+      (AnyValue::Integer(value), AnyType::Integer) => Some(AnyValue::Integer(*value)),
+      (AnyValue::Integer(value), AnyType::Number) => Some(AnyValue::Number(env.builder.build_signed_int_to_float(*value, env.context.f64_type(), "cast"))),
+      (AnyValue::Number(value), AnyType::Number) => Some(AnyValue::Number(*value)),
+      (AnyValue::Boolean(value), AnyType::Boolean) => Some(AnyValue::Boolean(*value)),
+      (AnyValue::Null, AnyType::Null) => Some(AnyValue::Null),
+      (AnyValue::Class(class), AnyType::Class(to_class)) => {
+        if *class == to_class {
+          Some(AnyValue::Class(class))
+        } else {
+          None
+        }
+      },
+      (AnyValue::Object(object), AnyType::Object(class)) => {
+        if object.class() == class {
+          Some(AnyValue::Object(object.clone()))
+        } else {
+          None
+        }
+      },
+      _ => None
     }
   }
 
@@ -112,9 +139,9 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn into_function(self) -> FunctionValue<'ctx> {
+  pub fn into_function(self) -> Box<Function<'ctx>> {
     match self {
-      AnyValue::Fn{fn_, ..} => fn_,
+      AnyValue::Fn(function) => function,
       _ => panic!("Invalid type")
     }
   }
@@ -140,12 +167,22 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn from_basic_value(type_: AnyType<'ctx>, value: BasicValueEnum<'ctx>) -> AnyValue<'ctx> {
+  pub fn from_basic_value(type_: &AnyType<'ctx>, value: BasicValueEnum<'ctx>) -> AnyValue<'ctx> {
     match type_ {
       AnyType::Integer => AnyValue::Integer(value.into_int_value()),
       AnyType::Number => AnyValue::Number(value.into_float_value()),
       AnyType::Boolean => AnyValue::Boolean(value.into_int_value()),
       AnyType::Null => AnyValue::Null,
+      _ => panic!("Invalid type `{type_:?}`\nvalue: {value:?}")
+    }
+  }
+
+  pub fn into_llvm_basic_value(&self) -> BasicValueEnum<'ctx> {
+    match self {
+      AnyValue::Integer(value) => BasicValueEnum::IntValue(*value),
+      AnyValue::Number(value) => BasicValueEnum::FloatValue(*value),
+      AnyValue::Boolean(value) => BasicValueEnum::IntValue(*value),
+      AnyValue::Ptr {ptr, ..} => BasicValueEnum::PointerValue(*ptr),
       _ => panic!("Invalid type")
     }
   }
@@ -153,23 +190,12 @@ impl<'ctx> AnyValue<'ctx> {
 
 impl<'ctx> Into<BasicValueEnum<'ctx>> for AnyValue<'ctx> {
   fn into(self) -> BasicValueEnum<'ctx> {
-    match self {
-      AnyValue::Integer(value) => BasicValueEnum::IntValue(value),
-      AnyValue::Number(value) => BasicValueEnum::FloatValue(value),
-      AnyValue::Boolean(value) => BasicValueEnum::IntValue(value),
-      AnyValue::Ptr {ptr, ..} => BasicValueEnum::PointerValue(ptr),
-      _ => panic!("Invalid type")
-    }
+    self.into_llvm_basic_value()
   }
 }
 
-impl<'ctx> From<BasicValueEnum<'ctx>> for AnyValue<'ctx> {
-  fn from(value: BasicValueEnum<'ctx>) -> AnyValue<'ctx> {
-    match value {
-      BasicValueEnum::IntValue(value) if value.get_type().get_bit_width() == 32 => AnyValue::Integer(value),
-      BasicValueEnum::IntValue(value) if value.get_type().get_bit_width() == 1 => AnyValue::Boolean(value),
-      BasicValueEnum::FloatValue(value) => AnyValue::Number(value),
-      _ => panic!("Invalid type")
-    }
+impl<'ctx> Into<BasicMetadataValueEnum<'ctx>> for AnyValue<'ctx> {
+  fn into(self) -> BasicMetadataValueEnum<'ctx> {
+    self.into_llvm_basic_value().into()
   }
 }

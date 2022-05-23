@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use inkwell::{context::Context, module::Module, builder::Builder, values::{IntValue, FloatValue, FunctionValue, PointerValue}, basic_block::BasicBlock, types::StructType};
 
-use super::{state::{State, StateValue}, StateType, AnyValue, Property, Type, AnyType, Class};
+use super::{state::{State, StateValue}, StateType, AnyValue, Property, Type, AnyType, Class, Function};
 
 #[derive(Debug)]
 pub struct Environment<'ctx> {
@@ -114,18 +114,21 @@ impl<'ctx> Environment<'ctx> {
   // Functions
 
   /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<AnyValue<'ctx>> {
+  pub fn get_function(&self, name: &str) -> Option<Box<Function<'ctx>>> {
     self.state.get(name, Some(StateType::Function)).map(|(value, ..)| value)
+      .map(|value| value.into_function())
   }
 
   /// Adds a new function to the topmost scope
-  pub fn add_function(&mut self, name: String, value: FunctionValue<'ctx>, args: Vec<(String, Type)>) -> Option<AnyValue<'ctx>> {
-    self.state.add(name.clone(), AnyValue::Fn{ fn_: value, name, args }, StateType::Function)
+  pub fn add_function(&mut self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
+    self.state.add(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
+      .map(|value| value.into_function())
   }
 
   /// Changes the value of the function from any scope
-  pub fn set_function(&mut self, name: String, value: FunctionValue<'ctx>, args: Vec<(String, Type)>) -> Option<AnyValue<'ctx>> {
-    self.state.set(name.clone(), AnyValue::Fn{ fn_: value, name, args }, StateType::Function)
+  pub fn set_function(&mut self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
+    self.state.set(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
+      .map(|value| value.into_function())
   }
 
   // Classes

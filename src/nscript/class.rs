@@ -2,7 +2,7 @@ use inkwell::types::StructType;
 
 use super::{AnyType, Environment};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Class<'ctx> {
   name: Option<String>,
   struct_type: StructType<'ctx>,
@@ -59,7 +59,7 @@ impl<'ctx> Class<'ctx> {
   }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Property<'ctx> {
   pub name: String,
   pub type_: AnyType<'ctx>,

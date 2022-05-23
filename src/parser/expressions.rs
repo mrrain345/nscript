@@ -2,7 +2,7 @@ use combine::parser::{choice, combinator};
 use combine::stream::RangeStream;
 use combine::parser;
 
-use crate::nscript::{Type, ParamsList};
+use crate::nscript::Type;
 
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
@@ -60,7 +60,7 @@ pub enum Expression {
   LeftShiftAssign { ptr: Box<Expression>, value: Box<Expression> },
   RightShiftAssign { ptr: Box<Expression>, value: Box<Expression> },
 
-  Fn { name: String, args: ParamsList, return_type: Type, body: Vec<Expression> },
+  Fn { name: String, args: Vec<(String, Type)>, return_type: Type, body: Vec<Expression> },
   Call { name: String, args: Vec<Expression> },
   Return(Box<Expression>),
 

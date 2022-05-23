@@ -1,6 +1,6 @@
 use inkwell::{types::{AnyTypeEnum, BasicMetadataTypeEnum, BasicTypeEnum}};
 
-use super::{Environment, AnyType, AnyValue, Class};
+use super::{Environment, AnyType, Class};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Type(pub String);
@@ -87,7 +87,3 @@ impl Type {
     }
   }
 }
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ParamsList(pub Vec<(String, Type)>);
