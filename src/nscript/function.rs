@@ -49,9 +49,16 @@ impl<'ctx> Function<'ctx> {
       panic!("Parser error: {} takes {} arguments, but {} were given", self.name_or_default(), self.args.len(), args.len());
     }
 
+    print!("call {}(", self.name_or_default());
+    for (i, arg) in args.iter().enumerate() {
+      if i > 0 { print!(", "); }
+      print!("{arg}");
+    }
+    println!(")\n");
+
     // Check if the arguments types are correct and convert them
     for (arg, (_, type_)) in args.iter().zip(self.args.iter()) {
-      let arg = arg.silent_cast(env, type_).expect(format!("Failed to cast argument `{:?}` to `{:?}`", arg, type_).as_str());
+      let arg = arg.silent_cast(env, type_).expect(format!("Failed to cast argument `{}` to `{}`", arg, type_).as_str());
       fn_args.push(arg.into_llvm_basic_value().into());
     }
 

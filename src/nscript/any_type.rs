@@ -1,4 +1,6 @@
-use inkwell::types::{AnyTypeEnum, BasicTypeEnum};
+use std::fmt::{Display, Error, Formatter};
+
+use inkwell::{types::{AnyTypeEnum, BasicTypeEnum}, AddressSpace};
 
 use super::{Environment, AnyValue, Class};
 
@@ -47,6 +49,13 @@ impl<'ctx> AnyType<'ctx> {
     if let AnyType::Class(..) = *self { true } else { false }
   }
 
+  pub fn is_primitive(&self) -> bool {
+    match *self {
+      AnyType::Integer | AnyType::Number | AnyType::String | AnyType::Boolean => true,
+      _ => false,
+    }
+  }
+
   pub fn into_class(self) -> &'ctx Class<'ctx> {
     match self {
       AnyType::Class(class) => class,
@@ -80,7 +89,7 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::Number => Some(env.context.f64_type().into()),
       AnyType::String => todo!(),
       AnyType::Boolean => Some(env.context.i8_type().into()),
-      AnyType::Object(class) => Some(class.struct_type().into()),
+      AnyType::Object(class) => Some(class.struct_type().ptr_type(AddressSpace::Generic) .into()),
       AnyType::Class(class) => Some(class.struct_type().into()),
       _ => None,
     }
@@ -134,6 +143,21 @@ impl<'ctx> AnyType<'ctx> {
       //   }
       // }
       _ => panic!("Invalid type"),
+    }
+  }
+}
+
+impl<'ctx> Display for AnyType<'ctx> {
+  fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+    match *self {
+      AnyType::Integer => write!(f, "Integer"),
+      AnyType::Number => write!(f, "Number"),
+      AnyType::String => write!(f, "String"),
+      AnyType::Boolean => write!(f, "Boolean"),
+      AnyType::Null => write!(f, "Null"),
+      AnyType::Object(class) => write!(f, "{}", class.name().unwrap_or("[Object]")),
+      AnyType::Function => write!(f, "Function"),
+      AnyType::Class(class) => write!(f, "Class({})", class.name().unwrap_or("[Class]")),
     }
   }
 }

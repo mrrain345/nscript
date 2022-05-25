@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use inkwell::{context::Context, module::Module, builder::Builder, values::{IntValue, FloatValue, FunctionValue, PointerValue}, basic_block::BasicBlock, types::StructType};
+use inkwell::{context::Context, module::Module, builder::Builder, values::{IntValue, FloatValue, PointerValue}, basic_block::BasicBlock, types::StructType};
 
-use super::{state::{State, StateValue}, StateType, AnyValue, Property, Type, AnyType, Class, Function};
+use super::{state::{State, StateValue}, StateType, AnyValue, AnyType, Class, Function, GarbageCollector};
 
 #[derive(Debug)]
 pub struct Environment<'ctx> {
@@ -10,6 +10,7 @@ pub struct Environment<'ctx> {
   pub module: Module<'ctx>,
   pub builder: Builder<'ctx>,
   pub state: State<'ctx>,
+  pub gc: GarbageCollector<'ctx>,
 }
 
 impl<'ctx> Environment<'ctx> {
@@ -19,6 +20,7 @@ impl<'ctx> Environment<'ctx> {
       module: context.create_module("main"),
       builder: context.create_builder(),
       state: State::new(),
+      gc: GarbageCollector::new(),
     }
   }
 

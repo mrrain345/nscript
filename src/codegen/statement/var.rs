@@ -17,7 +17,14 @@ pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type
   //   return Some(value).into();
   // }
 
-  let value = value.as_ref().unwrap().codegen(env);
+  let value = value.as_ref().unwrap().codegen(env).deref(env);
+
+  // If value is a pointer to a primitive type, dereference it
+  let value = if value.is_primitive_ptr() {
+    value.deref(env)
+  } else {
+    value
+  };
 
   // TODO: Check if type is compatible with value
   let (ptr, type_) = match value {
@@ -37,10 +44,10 @@ pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type
       (ptr, AnyType::Boolean)
     },
     AnyValue::Object(object) => {
-      let value = env.builder.build_load(object.struct_ptr(), object.class().name_or_default()).into_struct_value();
+      // let value = env.builder.build_load(object.struct_ptr(), object.class().name_or_default()).into_struct_value();
       (object.struct_ptr(), AnyType::Object(object.class()))
     },
-    _ => panic!("Parser error: invalid type `{type_:?}`")
+    _ => panic!("Parser error: invalid type `{type_:?}`, value: `{value}`")
   };
 
   env.add_variable(name.into(), ptr, type_)

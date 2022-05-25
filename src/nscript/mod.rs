@@ -13,6 +13,7 @@ mod type_;
 mod class;
 mod object;
 mod function;
+mod gc;
 
 pub use any_value::AnyValue;
 pub use any_type::AnyType;
@@ -22,6 +23,7 @@ pub use type_::Type;
 pub use class::{Class, Property};
 pub use object::Object;
 pub use function::Function;
+pub use gc::GarbageCollector;
 
 use fn_print::fn_print;
 use fn_main::fn_main;
