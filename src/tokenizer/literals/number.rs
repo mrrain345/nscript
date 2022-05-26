@@ -1,9 +1,9 @@
 use combine::parser::{Parser, char, choice, range, combinator};
 use combine::stream::RangeStream;
 
-use crate::tokenizer::{ignore_spaces, separator};
+use crate::tokenizer::{ignore_spaces, separator, Token};
 
-pub fn number<'src, I>() -> impl Parser<I, Output=f64> + 'src
+pub fn number<'src, I>() -> impl Parser<I, Output=Token> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   let take_num1 = || range::take_while1(|c: char| c.is_digit(10));
@@ -50,6 +50,6 @@ pub fn number<'src, I>() -> impl Parser<I, Output=f64> + 'src
     choice::choice((
       combinator::attempt(number1.skip(separator())),
       combinator::attempt(number2.skip(separator())),
-    )).expected("number")
+    )).map(|num| Token::Number(num))
   )
 }

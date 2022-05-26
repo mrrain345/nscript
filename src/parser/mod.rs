@@ -2,13 +2,14 @@ use std::fs::File;
 use std::io::Write;
 use std::vec;
 
+use combine::Positioned;
 use combine::easy::Errors;
+use combine::stream::{RangeStream, position::{Stream as PositionStream, SourcePosition}};
 use combine::parser::{EasyParser, Parser, char, repeat};
-use combine::stream::position::{Stream as PositionStream, SourcePosition};
-use combine::stream::RangeStream;
 
-use crate::tokenizer::terminator;
-use super::tokenizer;
+use self::tokens::terminator;
+
+use super::tokenizer::{self, Token};
 
 mod expressions;
 mod operations;
@@ -16,26 +17,28 @@ mod statements;
 mod call;
 mod object;
 mod prop_chain;
-mod identifier;
+mod type_;
+pub mod tokens;
 
+pub use type_::Type;
 pub use expressions::{expression, Expression, Property, PropertyValue};
 
-pub fn tokenize<'src, I>() -> impl Parser<I, Output = Vec<Expression>> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
-  // let spaces = range::take_while(|c: char| c.is_whitespace());
-  repeat::sep_end_by(expression(), terminator())
-}
+pub fn parse<'src>(tokens: &[Token]) -> Result<Vec<Expression>, Errors<Token, &[Token], usize>> {
 
-pub fn parse<'src>(source: &'src str) -> Result<Vec<Expression>, Errors<char, &str, SourcePosition>> {
-
-  let expressions = tokenize().easy_parse(PositionStream::new(source));
+  let parser = || repeat::sep_end_by(expression(), terminator());
+  let expressions = parser().easy_parse(PositionStream::new(tokens));
 
   match expressions {
     Ok((expressions, stream)) => {
+      // Check if there are any tokens left.
       if !stream.input.is_empty() {
-        println!("Unparsed: {:?}", stream.input);
-        println!("{:?}\n", stream.positioner);
+        eprintln!("[Parser]");
+        eprintln!("Unparsed:");
+        for token in stream.input {
+          eprintln!("  {token}");
+        }
+        eprintln!("\nPosition: {}\n", stream.position());
       }
 
       // Save AST to file.
@@ -52,6 +55,7 @@ pub fn parse<'src>(source: &'src str) -> Result<Vec<Expression>, Errors<char, &s
     }
   }
 }
+
 
 fn format_intent(output: &mut Vec<char>, indent: usize) {
   output.push('\n');

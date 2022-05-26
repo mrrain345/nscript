@@ -1,157 +1,177 @@
-use combine::parser::{Parser, char, range, choice};
+use super::Token;
+use combine::choice;
+use combine::parser::{char, range};
+use combine::parser::Parser;
 use combine::stream::RangeStream;
 
-use super::ignore_spaces;
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Operator {
+  // Comparison operators
 
-// - + ! ~
-pub fn unitary_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+  /// ==
+  Equal,
+  /// !=
+  NotEqual,
+  /// <=
+  LessOrEqual,
+  /// >=
+  GreaterOrEqual,
+  /// <
+  LessThan,
+  /// >
+  GreaterThan,
+  
+  // Assignment operators
 
-  ignore_spaces(
-    choice::choice((
-      char::char('-'),
-      char::char('+'),
-      char::char('!'),
-      char::char('~'),
-    ))
-  )
+  /// =
+  Assign,
+  /// +=
+  PlusAssign,
+  /// -=
+  MinusAssign,
+  /// **=
+  PowerAssign,
+  /// *=
+  MultiplyAssign,
+  /// /=
+  DivideAssign,
+  /// %=
+  ModuloAssign,
+  /// &=
+  BitwiseAndAssign,
+  /// |=
+  BitwiseOrAssign,
+  /// ^=
+  BitwiseXorAssign,
+  /// <<=
+  LeftShiftAssign,
+  /// >>=
+  RightShiftAssign,
+
+  // Other operators
+
+  /// ...
+  Spread,
+  /// .
+  Dot,
+  /// ??
+  NullCoalescing,
+  /// ?.
+  OptionalChain,
+  /// ?
+  Optional,
+  /// ->
+  Arrow,
+  /// =>
+  FatArrow,
+
+  // Arithmetic operators
+
+  /// +
+  Plus,
+  /// -
+  Minus,
+  /// **
+  Power,
+  /// *
+  Multiply,
+  /// /
+  Divide,
+  /// %
+  Modulo,
+
+  // Logical operators
+
+  /// &&
+  And,
+  /// ||
+  Or,
+  /// !
+  Not,
+
+  // Bitwise operators
+
+  /// ~
+  BitwiseNot,
+  /// <<
+  LeftShift,
+  /// >>
+  RightShift,
+  /// &
+  BitwiseAnd,
+  /// ^
+  BitwiseXor,
+  /// |
+  BitwiseOr,
 }
 
-// **
-pub fn power_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
+pub fn operator<'src, I>() -> impl Parser<I, Output=Token> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
+    
+  let comparison = choice((
+    range::range("==")  .map(|_| Token::Operator(Operator::Equal)),
+    range::range("!=")  .map(|_| Token::Operator(Operator::NotEqual)),
+    range::range("<=")  .map(|_| Token::Operator(Operator::LessOrEqual)),
+    range::range(">=")  .map(|_| Token::Operator(Operator::GreaterOrEqual)),
+    range::range("<")   .map(|_| Token::Operator(Operator::LessThan)),
+    range::range(">")   .map(|_| Token::Operator(Operator::GreaterThan)),
+  ));
 
-  ignore_spaces(
-    range::range("**")
-  )
-}
+  let other = choice((
+    range::range("...") .map(|_| Token::Operator(Operator::Spread)),
+    range::range(".")   .map(|_| Token::Operator(Operator::Dot)),
+    range::range("??")  .map(|_| Token::Operator(Operator::NullCoalescing)),
+    range::range("?.")  .map(|_| Token::Operator(Operator::OptionalChain)),
+    range::range("?")   .map(|_| Token::Operator(Operator::Optional)),
+    range::range("->")  .map(|_| Token::Operator(Operator::Arrow)),
+    range::range("=>")  .map(|_| Token::Operator(Operator::FatArrow)),
+  ));
+  
+  let assignment = choice((
+    range::range("=")   .map(|_| Token::Operator(Operator::Assign)),
+    range::range("+=")  .map(|_| Token::Operator(Operator::PlusAssign)),
+    range::range("-=")  .map(|_| Token::Operator(Operator::MinusAssign)),
+    range::range("**=") .map(|_| Token::Operator(Operator::PowerAssign)),
+    range::range("*=")  .map(|_| Token::Operator(Operator::MultiplyAssign)),
+    range::range("/=")  .map(|_| Token::Operator(Operator::DivideAssign)),
+    range::range("%=")  .map(|_| Token::Operator(Operator::ModuloAssign)),
+    range::range("&=")  .map(|_| Token::Operator(Operator::BitwiseAndAssign)),
+    range::range("|=")  .map(|_| Token::Operator(Operator::BitwiseOrAssign)),
+    range::range("^=")  .map(|_| Token::Operator(Operator::BitwiseXorAssign)),
+    range::range("<<=") .map(|_| Token::Operator(Operator::LeftShiftAssign)),
+    range::range(">>=") .map(|_| Token::Operator(Operator::RightShiftAssign)),
+  ));
 
-// * / %
-pub fn multiplicative_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+  let arithmetic = choice((
+    range::range("+")   .map(|_| Token::Operator(Operator::Plus)),
+    range::range("-")   .map(|_| Token::Operator(Operator::Minus)),
+    range::range("**")  .map(|_| Token::Operator(Operator::Power)),
+    range::range("*")   .map(|_| Token::Operator(Operator::Multiply)),
+    range::range("/")   .map(|_| Token::Operator(Operator::Divide)),
+    range::range("%")   .map(|_| Token::Operator(Operator::Modulo)),
+  ));
 
-  ignore_spaces(
-    choice::choice((
-      char::char('*'),
-      char::char('/'),
-      char::char('%'),
-    ))
-  )
-}
+  let logical = choice((
+    range::range("&&")  .map(|_| Token::Operator(Operator::And)),
+    range::range("||")  .map(|_| Token::Operator(Operator::Or)),
+    range::range("!")   .map(|_| Token::Operator(Operator::Not)),
+  ));
 
-// + -
-pub fn additive_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
+  let bitwise = choice((
+    range::range("<<")  .map(|_| Token::Operator(Operator::LeftShift)),
+    range::range(">>")  .map(|_| Token::Operator(Operator::RightShift)),
+    range::range("&")   .map(|_| Token::Operator(Operator::BitwiseAnd)),
+    range::range("|")   .map(|_| Token::Operator(Operator::BitwiseOr)),
+    range::range("~")   .map(|_| Token::Operator(Operator::BitwiseNot)),
+    range::range("^")   .map(|_| Token::Operator(Operator::BitwiseXor)),
+  ));
 
-  ignore_spaces(
-    choice::choice((
-      char::char('+'),
-      char::char('-'),
-    ))
-  )
-}
-
-// << >>
-pub fn shift_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    choice::choice((
-      range::range("<<"),
-      range::range(">>"),
-    ))
-  )
-}
-
-// < > <= >=
-pub fn relational_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    choice::choice((
-      range::range("<"),
-      range::range(">"),
-      range::range("<="),
-      range::range(">="),
-    ))
-  )
-}
-
-// == !=
-pub fn equality_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    choice::choice((
-      range::range("=="),
-      range::range("!="),
-    ))
-  )
-}
-
-// &
-pub fn bitwise_and_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    char::char('&')
-  )
-}
-
-// ^
-pub fn bitwise_xor_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    char::char('^')
-  )
-}
-
-// |
-pub fn bitwise_or_operator<'src, I>() -> impl Parser<I, Output=char> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    char::char('|')
-  )
-}
-
-// &&
-pub fn logical_and_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    range::range("&&")
-  )
-}
-
-// ||
-pub fn logical_or_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    range::range("||")
-  )
-}
-
-// = *= /= %= **= += -= <<= >>= &= ^= |=
-pub fn assignment_operator<'src, I>() -> impl Parser<I, Output=&'src str> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    choice::choice((
-      range::range("="),
-      range::range("*="),
-      range::range("/="),
-      range::range("%="),
-      range::range("**="),
-      range::range("+="),
-      range::range("-="),
-      range::range("<<="),
-      range::range(">>="),
-      range::range("&="),
-      range::range("^="),
-      range::range("|="),
-    ))
-  )
+  return choice((
+    comparison,
+    other,
+    assignment,
+    arithmetic,
+    logical,
+    bitwise,
+  ));
 }

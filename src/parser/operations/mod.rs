@@ -1,15 +1,7 @@
-use combine::parser::{choice, sequence};
-use combine::stream::RangeStream;
-use combine::{parser, attempt};
+use combine::{Stream, parser, choice, attempt, between};
+use crate::parser::{Expression, tokens::*};
 
 use self::op9_logical::logical_or_operation;
-
-use super::call::call;
-use super::expressions::Expression;
-use super::identifier::identifier;
-use super::object::object;
-use super::prop_chain::prop_chain;
-use super::{tokenizer::*};
 
 // Operator precedence
 // Category         | Operator    | Associativity
@@ -43,32 +35,34 @@ mod op10_assignment;
 
 pub use op10_assignment::assignment_operation;
 
+use super::{call::call, object::object, prop_chain::prop_chain};
+
 
 parser! {
-  pub fn operation['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn operation[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
     
     logical_or_operation()
   }
 }
 
 parser! {
-  fn parenthesis['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  fn parenthesis[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    sequence::between(
-      punctuator("("),
-      punctuator(")"),
+    between(
+      punctuator(Punctuator::LeftParen),
+      punctuator(Punctuator::RightParen),
       operation(),
     )
   }
 }
 
 parser! {
-  fn literal['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  fn literal[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
     
-    choice::choice((
+    choice((
       number().map(|v| Expression::Number(v)),
       integer().map(|v| Expression::Integer(v)),
       string().map(|v| Expression::String(v)),
@@ -79,16 +73,16 @@ parser! {
 }
 
 parser! {
-  fn highest_operation['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  fn highest_operation[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    choice::choice((
+    choice((
       attempt(call()),
       attempt(object()),
       parenthesis(),
       literal(),
       attempt(prop_chain()),
-      identifier(),
+      // identifier(),
     ))
   }
 }

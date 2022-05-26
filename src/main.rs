@@ -3,8 +3,10 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use inkwell::context::Context;
-use nscript::compile;
 use nscript::Environment;
+use nscript::compile;
+// use nscript::compile;
+// use nscript::Environment;
 
 mod parser;
 mod tokenizer;
@@ -13,6 +15,9 @@ mod codegen;
 pub mod append_list;
 
 fn main() {
+  // Enable better panic.
+  better_panic::install();
+
   // Get the path to the file.
   let path = match env::args().nth(1) {
     Some(path) => PathBuf::from(path),
@@ -37,12 +42,15 @@ fn main() {
     }
   };
 
+  // Tokenize
+  let tokens = tokenizer::parse(&script);
+
   // Create a new environment.
   let context = Context::create();
   let mut env = Environment::new(&context);
 
   // Parse the file.
-  match parser::parse(&script) {
+  match parser::parse(&tokens) {
     Ok(expressions) => {
 
       // Compile the file.
@@ -56,6 +64,6 @@ fn main() {
         main.call();
       }
     }
-    Err(err) => eprintln!("{}", &err),
+    Err(err) => eprintln!("[Parser error] {:?}", &err),
   }
 }

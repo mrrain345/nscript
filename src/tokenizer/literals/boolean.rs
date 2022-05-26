@@ -1,19 +1,19 @@
 use combine::parser::{Parser, range, choice};
 use combine::stream::RangeStream;
-use crate::tokenizer::{ignore_spaces, separator};
+use crate::tokenizer::{ignore_spaces, separator, Token};
 
-pub fn boolean<'src, I>() -> impl Parser<I, Output=bool> + 'src
+pub fn boolean<'src, I>() -> impl Parser<I, Output=Token> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   let true_ = range::range("true")
     .with(separator())
-    .map(|_| true);
+    .map(|_| Token::Boolean(true));
 
   let false_ = range::range("false")
     .with(separator())
-    .map(|_| false);
+    .map(|_| Token::Boolean(false));
 
   ignore_spaces(
-    choice::or(true_, false_).expected("boolean")
+    choice::or(true_, false_)
   )
 }

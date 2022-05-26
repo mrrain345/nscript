@@ -1,15 +1,21 @@
-use combine::{parser::repeat, RangeStream};
-use combine::parser;
-
-use crate::parser::Expression;
-use crate::tokenizer::{bitwise_and_operator, bitwise_xor_operator, bitwise_or_operator};
+use combine::{Stream, parser::repeat, parser};
+use crate::parser::{Expression, tokens::*};
 
 use super::op7_equality::equality_operation;
 
 parser! {
+  /// Bitwise AND operator (&)
+  fn bitwise_and_operator[I]()(I) -> Operator
+  where [ I: Stream<Token=Token> ] {
+
+    operator(Operator::BitwiseAnd)
+  }
+}
+
+parser! {
   /// Bitwise AND operation (&)
-  pub fn bitwise_and_operation['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn bitwise_and_operation[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     repeat::chainl1(
       equality_operation(), // allows to nest higher-order operations
@@ -20,10 +26,20 @@ parser! {
   }
 }
 
+
+parser! {
+  /// Bitwise XOR operator (^)
+  fn bitwise_xor_operator[I]()(I) -> Operator
+  where [ I: Stream<Token=Token> ] {
+
+    operator(Operator::BitwiseXor)
+  }
+}
+
 parser! {
   /// Bitwise XOR operation (^)
-  pub fn bitwise_xor_operation['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn bitwise_xor_operation[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     repeat::chainl1(
       bitwise_and_operation(), // allows to nest higher-order operations
@@ -34,10 +50,20 @@ parser! {
   }
 }
 
+
+parser! {
+  /// Bitwise OR operator (|)
+  fn bitwise_or_operator[I]()(I) -> Operator
+  where [ I: Stream<Token=Token> ] {
+
+    operator(Operator::BitwiseOr)
+  }
+}
+
 parser! {
   /// Bitwise OR operation (|)
-  pub fn bitwise_or_operation['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn bitwise_or_operation[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     repeat::chainl1(
       bitwise_xor_operation(), // allows to nest higher-order operations

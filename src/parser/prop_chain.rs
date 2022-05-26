@@ -1,26 +1,23 @@
-use combine::{parser::repeat, RangeStream};
-use combine::{parser, optional};
-
-use crate::parser::Expression;
-use crate::tokenizer::{punctuator, self};
-
-use super::identifier::identifier;
-use super::operations::operation;
+use combine::{Stream, parser::repeat, parser, optional};
+use super::{Expression, tokens::*};
 
 parser! {
-  pub fn prop_chain['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn prop_chain[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     (
       identifier(), // object name
       optional(
-        punctuator(".")
+        operator(Operator::Dot)
         .with(repeat::sep_by1(
-          tokenizer::identifier(), // property name
-          punctuator(".")
+          identifier(), // property name
+          operator(Operator::Dot)
         ))
       )
     )
-    .map(|(object, chain): (_, Option<Vec<_>>)| Expression::PropChain { object: Box::new(object), chain: chain.unwrap_or_default() })
+    .map(|(object, chain): (_, Option<Vec<_>>)| Expression::PropChain {
+      object: Box::new(Expression::Identifier(object)),
+      chain: chain.unwrap_or_default()
+    })
   }
 }

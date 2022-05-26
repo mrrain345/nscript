@@ -1,9 +1,9 @@
 use combine::parser::{Parser, char, repeat, token, sequence};
 use combine::stream::RangeStream;
 
-use crate::tokenizer::{separator, ignore_spaces};
+use crate::tokenizer::{separator, ignore_spaces, Token};
 
-pub fn string<'src, I>() -> impl Parser<I, Output=String> + 'src
+pub fn string<'src, I>() -> impl Parser<I, Output=Token> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   // Parser for escaped characters.
@@ -26,6 +26,6 @@ pub fn string<'src, I>() -> impl Parser<I, Output=String> + 'src
   ignore_spaces(
     string('"').or(string('\''))
       .skip(separator())
-      .expected("string")
+      .map(|s| Token::String(s))
   )
 }

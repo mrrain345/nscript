@@ -1,23 +1,18 @@
-use combine::{parser::repeat, RangeStream};
-use combine::{parser, between};
-
-use crate::parser::{Expression,PropertyValue};
-use crate::tokenizer::{identifier, punctuator};
-
-use super::operations::operation;
+use combine::{Stream, parser::repeat, parser, between};
+use super::{Expression, tokens::*, operations::operation, PropertyValue};
 
 parser! {
-  pub fn object['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn object[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     (
       identifier(), // class name
       between(
-        punctuator("{"),
-        punctuator("}"),
+        punctuator(Punctuator::LeftBracket),
+        punctuator(Punctuator::RightBracket),
         repeat::sep_end_by(
-          identifier().skip(punctuator("=")).and(operation()), // properties
-          punctuator(",")
+          identifier().skip(operator(Operator::Assign)).and(operation()), // properties
+          punctuator(Punctuator::Comma),
         )
       ),
     )

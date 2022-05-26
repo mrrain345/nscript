@@ -1,16 +1,14 @@
-use combine::{parser, RangeStream, optional};
-
-use crate::{parser::{expressions::Expression, operations::operation}, nscript::Type};
-use crate::tokenizer::*;
+use combine::{Stream, parser, optional};
+use crate::parser::{Expression, tokens::*, operations::operation, Type};
 
 parser!{
-  pub fn var['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn var[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    keyword("var").with((
+    keyword(Keyword::Var).with((
       identifier(), // name
-      optional( punctuator(":").with(type_()) ), // type
-      optional( punctuator("=").with(operation()) ), // value
+      optional( punctuator(Punctuator::Colon).with(type_()) ), // type
+      optional( operator(Operator::Assign).with(operation()) ), // value
     ))
     .map(|(name, type_, value)| Expression::Var {
       name,

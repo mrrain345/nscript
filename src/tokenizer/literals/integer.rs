@@ -1,8 +1,8 @@
 use combine::parser::{Parser, range, choice};
 use combine::stream::RangeStream;
-use crate::tokenizer::{ignore_spaces, separator};
+use crate::tokenizer::{ignore_spaces, separator, Token};
 
-pub fn integer<'src, I>() -> impl Parser<I, Output=i32> + 'src
+pub fn integer<'src, I>() -> impl Parser<I, Output=Token> + 'src
   where I: RangeStream<Token=char, Range=&'src str> + 'src {
 
   // Parse a hexadecimal integer.
@@ -29,6 +29,7 @@ pub fn integer<'src, I>() -> impl Parser<I, Output=i32> + 'src
     .map(|s: &str| s.parse::<i32>().unwrap() );
 
   ignore_spaces(
-    choice::choice((hex, octal, binary, dec)).expected("integer")
+    choice::choice((hex, octal, binary, dec))
+      .map(|i: i32| Token::Integer(i))
   )
 }

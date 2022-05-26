@@ -1,12 +1,8 @@
 use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
 pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain: &[String]) -> AnyValue<'ctx> {
-  println!("\n --- \n");
   // Get the object
   let object = object.codegen(env);
-  println!("object: {object}");
-
-  println!("prop_chain: {object} {:?}", chain);
 
   // If chain is empty, return the object
   if chain.is_empty() { return object; }
@@ -35,18 +31,11 @@ pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain:
     // Get property's type
     let prop_type = class.get_property(prop_positon).type_;
 
-
-    println!("prop {class}.{property}: {prop_type}, pos: {prop_positon}\n", class=class.name_or_default());
-    println!("ptr: {ptr:#?}\n");
-    println!("prop_type: {prop_type}\n");
-
     let struct_ptr = env.builder.build_struct_gep(ptr, prop_positon as u32, &property).unwrap();
     
     // If property is an object, dereference a pointer
     if prop_type.is_object() {
-      println!("is object");
       let struct_ptr = env.builder.build_load(struct_ptr, &property).into_pointer_value();
-      println!("object ptr: {ptr:#?}\n");
       AnyValue::Ptr { ptr: struct_ptr, type_: prop_type }
     } else {
       AnyValue::Ptr { ptr: struct_ptr, type_: prop_type }

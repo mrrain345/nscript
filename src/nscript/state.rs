@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use inkwell::{values::{FunctionValue, PointerValue}, basic_block::BasicBlock};
+use inkwell::basic_block::BasicBlock;
 
 use crate::append_list::AppendList;
 
-use super::{AnyValue, type_::Type, Property, Class};
+use super::{AnyValue, Class};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StateType {

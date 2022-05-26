@@ -1,30 +1,26 @@
-use combine::{parser::repeat, RangeStream, optional};
-use combine::parser;
-
-use crate::parser::expression;
-use crate::{parser::{Expression, operations::operation}};
-use crate::tokenizer::*;
+use combine::{Stream, parser::repeat, parser, optional};
+use crate::parser::{Expression, tokens::*, operations::operation, expression};
 
 parser! {
-  pub fn if_['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn if_[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    keyword("if").with((
+    keyword(Keyword::If).with((
       operation(), // condition
-      punctuator("{")
+      punctuator(Punctuator::LeftBrace)
         .with(repeat::sep_end_by(expression(), terminator())) // then
-        .skip(punctuator("}")),
+        .skip(punctuator(Punctuator::RightBrace)),
       optional(
-        keyword("else")
-        .with(punctuator("{")
+        keyword(Keyword::Else)
+        .with(punctuator(Punctuator::LeftBrace)
         .with(repeat::sep_end_by(expression(), terminator())) // else
-        .skip(punctuator("}")))
+        .skip(punctuator(Punctuator::RightBrace)))
       ),
     ))
     .map(|(condition, then, else_)| Expression::If {
       condition: Box::new(condition),
       then,
-      else_: else_.unwrap_or_else(|| vec![]),
+      else_: else_.unwrap_or(vec![]),
     })
   }
 }

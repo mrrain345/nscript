@@ -1,21 +1,16 @@
-use combine::{parser::repeat, RangeStream};
-use combine::{parser, between};
-
-use crate::parser::Expression;
-use crate::tokenizer::{identifier, punctuator};
-
-use super::operations::operation;
+use combine::{Stream, parser::repeat, parser, between};
+use super::{Expression, tokens::*, operations::operation};
 
 parser! {
-  pub fn call['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn call[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
     (
       identifier(), // name
       between(
-        punctuator("("),
-        punctuator(")"),
-        repeat::sep_end_by(operation(), punctuator(",")) // args
+        punctuator(Punctuator::LeftParen),
+        punctuator(Punctuator::RightParen),
+        repeat::sep_end_by(operation(), punctuator(Punctuator::Comma)) // args
       ),
     )
     .map(|(name, args)| Expression::Call { name, args })

@@ -1,9 +1,8 @@
-use combine::parser::{choice, combinator};
-use combine::stream::RangeStream;
-use combine::parser;
+use combine::{parser, Stream, attempt, choice};
 
-use crate::nscript::Type;
+use crate::tokenizer::Token;
 
+use super::Type;
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
 
@@ -92,13 +91,13 @@ pub struct PropertyValue {
 
 
 parser!{
-  pub fn expression['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn expression[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    choice::choice((
-      combinator::attempt(statement()),
-      combinator::attempt(assignment_operation()),
-      combinator::attempt(operation()),
+    choice((
+      attempt(statement()),
+      attempt(assignment_operation()),
+      attempt(operation()),
     ))
   }
 }

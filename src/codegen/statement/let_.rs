@@ -1,4 +1,4 @@
-use crate::{parser::Expression, nscript::{AnyValue, Environment, Type}};
+use crate::{parser::{Expression, Type}, nscript::{AnyValue, Environment}};
 
 pub fn let_<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type>, value: &Expression) -> AnyValue<'ctx> {
   let value = value.codegen(env);

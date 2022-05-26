@@ -1,35 +1,32 @@
-use combine::parser::repeat;
-use combine::{parser, RangeStream, optional};
-
-use crate::parser::{Expression, expression};
-use crate::nscript::Type;
-use crate::tokenizer::*;
+use combine::{Stream, parser::repeat, parser, optional, between};
+use crate::parser::{Expression, tokens::*, Type, expression};
 
 parser! {
-  pub fn fn_['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn fn_[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    keyword("fn").with((
-      identifier().skip(punctuator("(")), // name
+    keyword(Keyword::Fn).with((
+      identifier().skip(punctuator(Punctuator::LeftParen)), // name
       repeat::sep_end_by( // args
         identifier()
-          .skip(punctuator(":"))
+          .skip(punctuator(Punctuator::Colon))
           .and(type_())
           .map(|(name, type_)| (name, Type(type_))),
-        punctuator(","),
+        punctuator(Punctuator::Comma),
       )
-      .skip(punctuator(")")),
-      optional(punctuator("->") // return type
-        .with(type_()))
-        .skip(punctuator("{"))
+      .skip(punctuator(Punctuator::RightBrace)),
+      optional(operator(Operator::Arrow).with(type_())) // return type
         .map(|type_| type_.map(Type)),
-      repeat::sep_end_by(expression(), terminator()) // body
-        .skip(punctuator("}")),
+      between (
+        punctuator(Punctuator::LeftBrace),
+        punctuator(Punctuator::RightBrace),
+        repeat::sep_end_by(expression(), terminator())
+      ) // body
     ))
     .map(|(name, args, type_, body)| Expression::Fn {
       name,
       args,
-      return_type: type_.unwrap_or_else(|| Type("null".to_string())),
+      return_type: type_.unwrap_or(Type("null".to_string())),
       body,
     })
   }

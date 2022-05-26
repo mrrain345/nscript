@@ -1,32 +1,39 @@
-use combine::parser::{Parser, char, range};
+use super::Token;
+use combine::parser::{char, choice, range};
+use combine::parser::Parser;
 use combine::stream::RangeStream;
 
-use super::ignore_spaces;
-
-pub fn punctuator<'src, I>(p: &'static str) -> impl Parser<I, Output=()> + 'src
-  where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-  ignore_spaces(
-    range::range(p).map(|_| ())
-  )
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Punctuator {
+  /// `(`
+  LeftParen,
+  /// `)`
+  RightParen,
+  /// `{`
+  LeftBrace,
+  /// `}`
+  RightBrace,
+  /// `[`
+  LeftBracket,
+  /// `]`
+  RightBracket,
+  /// `,`
+  Comma,
+  /// `:`
+  Colon,
 }
 
-// pub fn any_punctuator<'src, I>() -> impl Parser<I, Output=char> + 'src
-//   where I: RangeStream<Token=char, Range=&'src str> + 'src {
-
-//   // Parser for punctuators
-//   let punctuator = |c| char::char(c).map(move |_| c);
+pub fn punctuator<'src, I>() -> impl Parser<I, Output=Token> + 'src
+  where I: RangeStream<Token=char, Range=&'src str> + 'src {
   
-//   ignore_spaces(
-//     choice::choice((
-//       punctuator('('),
-//       punctuator(')'),
-//       punctuator('{'),
-//       punctuator('}'),
-//       punctuator('['),
-//       punctuator(']'),
-//       punctuator(','),
-//       punctuator(':'),
-//     ))
-//   ).expected("punctuator")
-// }
+  return choice::choice((
+    range::range("(").map(|_| Token::Punctuator(Punctuator::LeftParen)),
+    range::range(")").map(|_| Token::Punctuator(Punctuator::RightParen)),
+    range::range("{").map(|_| Token::Punctuator(Punctuator::LeftBrace)),
+    range::range("}").map(|_| Token::Punctuator(Punctuator::RightBrace)),
+    range::range("[").map(|_| Token::Punctuator(Punctuator::LeftBracket)),
+    range::range("]").map(|_| Token::Punctuator(Punctuator::RightBracket)),
+    range::range(",").map(|_| Token::Punctuator(Punctuator::Comma)),
+    range::range(":").map(|_| Token::Punctuator(Punctuator::Colon)),
+  ));
+}

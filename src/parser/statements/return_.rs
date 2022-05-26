@@ -1,13 +1,11 @@
-use combine::{parser, RangeStream, optional};
-
-use crate::{parser::{expressions::Expression, operations::operation}};
-use crate::tokenizer::*;
+use combine::{Stream, parser, optional};
+use crate::parser::{Expression, tokens::*, operations::operation};
 
 parser! {
-  pub fn return_['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn return_[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    keyword("return").with(
+    keyword(Keyword::Return).with(
       optional(operation()), // value
     )
     .map(|value| Expression::Return (

@@ -1,7 +1,5 @@
-use combine::{parser::{combinator, choice}, RangeStream};
-use combine::parser;
-
-use super::expressions::Expression;
+use combine::{Stream, parser, choice};
+use crate::parser::{Expression, tokens::*};
 
 mod let_;
 mod var;
@@ -11,16 +9,16 @@ mod return_;
 mod class;
 
 parser! {
-  pub fn statement['src, I]()(I) -> Expression
-  where [ I: RangeStream<Token=char, Range=&'src str> + 'src ] {
+  pub fn statement[I]()(I) -> Expression
+  where [ I: Stream<Token=Token> ] {
 
-    choice::choice((
-      combinator::attempt(if_::if_()),
-      combinator::attempt(let_::let_()),
-      combinator::attempt(var::var()),
-      combinator::attempt(fn_::fn_()),
-      combinator::attempt(class::class()),
-      combinator::attempt(return_::return_()),
+    choice((
+      fn_::fn_(),
+      if_::if_(),
+      let_::let_(),
+      var::var(),
+      class::class(),
+      return_::return_(),
     ))
   }
 }
