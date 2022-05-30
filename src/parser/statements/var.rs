@@ -1,25 +1,34 @@
 use combine::{Stream, parser, optional};
-use crate::parser::{Expression, tokens::*, operations::operation, Type};
+use crate::parser::{Expression, tokens::*, expression};
 
 parser!{
+  /// Syntax:
+  /// ```
+  /// var <identifier> [: <type>] [= <expression>]
   pub fn var[I]()(I) -> Expression
   where [ I: Stream<Token=Token> ] {
 
-    keyword(Keyword::Var).with((
+    ignore_newlines!(
+      keyword(Keyword::Var),
       identifier(), // name
-      optional( punctuator(Punctuator::Colon).with(type_()) ), // type
-      optional( operator(Operator::Assign).with(operation()) ), // value
-    ))
-    .map(|(name, type_, value)| Expression::Var {
+      optional( // type
+        ignore_newlines!(
+          punctuator(Punctuator::Colon),
+          type_(),
+        ).map(|(_, type_)| type_)
+      ),
+      optional( // value
+        ignore_newlines!(
+          operator(Operator::Assign),
+          expression(),
+        ).map(|(_, value)| value)
+      )
+    )
+
+    .map(|(_, name, type_, value)| Expression::Var {
       name,
-      type_: match type_ {
-        Some(t) => Some(Type(t)),
-        None => None,
-      },
-      value: match value {
-        Some(v) => Some(Box::new(v)),
-        None => None,
-      },
+      type_,
+      value: value.map(|value| Box::new(value)),
     })
   }
 }

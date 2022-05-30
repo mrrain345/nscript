@@ -17,6 +17,25 @@ pub enum AnyType<'ctx> {
 }
 
 impl<'ctx> AnyType<'ctx> {
+  pub fn from_string(env: &mut Environment<'ctx>, type_name: &str) -> Option<AnyType<'ctx>> {
+    let type_ = match type_name {
+      "null" => Some(AnyType::Null),
+      "Integer" => Some(AnyType::Integer),
+      "Number" => Some(AnyType::Number),
+      "String" => Some(AnyType::String),
+      "Boolean" => Some(AnyType::Boolean),
+      _ => None,
+    };
+
+    if type_.is_some() { return type_; }
+
+    if let Some(class) = env.get_class(type_name).map(|c| c.into_class()) {
+      Some(AnyType::Object(class))
+    } else {
+      None
+    }
+  }
+
   pub fn is_null(&self) -> bool {
     if let AnyType::Null = *self { true } else { false }
   }

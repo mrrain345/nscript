@@ -1,18 +1,22 @@
-use combine::{Stream, parser::repeat, parser, between};
-use super::{Expression, tokens::*, operations::operation};
+use combine::{Stream, parser::repeat, parser};
+use super::{Expression, tokens::*, expression};
 
 parser! {
+  /// Syntax:
+  /// ```
+  /// <identifier> ( <expression_comma>* )
+  /// <expression_comma> ::= <expression> ,
+  /// ```
   pub fn call[I]()(I) -> Expression
   where [ I: Stream<Token=Token> ] {
 
-    (
+    ignore_newlines!(
       identifier(), // name
-      between(
-        punctuator(Punctuator::LeftParen),
-        punctuator(Punctuator::RightParen),
-        repeat::sep_end_by(operation(), punctuator(Punctuator::Comma)) // args
-      ),
+      punctuator(Punctuator::LeftParen),
+      repeat::sep_end_by(expression(), punctuator(Punctuator::Comma)),
+      punctuator(Punctuator::RightParen),
     )
-    .map(|(name, args)| Expression::Call { name, args })
+    
+    .map(|(name, _, args, _)| Expression::Call { name, args })
   }
 }

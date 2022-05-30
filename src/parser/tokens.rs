@@ -1,6 +1,16 @@
-use combine::{parser::token, parser, token, Stream};
+use combine::{parser::{token, repeat}, parser, token, Stream};
 
 pub use crate::tokenizer::{Token, Keyword, Punctuator, Operator};
+
+// Ignore newlines
+macro_rules! ignore_newlines {
+  ($arg:expr, $($args:expr),*$(,)?) => {
+    ( $arg, $(newline().with($args),)* )
+  }
+}
+
+pub(crate) use ignore_newlines;
+
 
 // Keyword
 parser! {
@@ -144,5 +154,15 @@ parser! {
   where [ I: Stream<Token=Token> ] {
     
     token(Token::Terminator).or(token(Token::NewLine)).map(|_| ())
+  }
+}
+
+// NewLine
+parser! {
+  /// Allow an optional newlines.
+  pub fn newline[I]()(I) -> ()
+  where [ I: Stream<Token=Token> ] {
+    
+    repeat::skip_many(token(Token::NewLine))
   }
 }

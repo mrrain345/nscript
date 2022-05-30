@@ -1,15 +1,14 @@
 class Vector {
-  x: Integer;
-  y: Integer;
-};
+  x: Integer
+  y: Integer
+}
 
 
 fn vecDot(v1: Vector, v2: Vector) -> Integer {
-  return v1.x * v2.x + v1.y * v2.y;
-};
+  return v1.x * v2.x + v1.y * v2.y
+}
 
-var v1 = Vector { x = 1, y = 2 };
-var v2 = Vector { x = 2, y = 4 };
+var v1 = Vector { x = 1, y = 2 }
+var v2 = Vector { x = 2, y = 4 }
 
-var dot = vecDot(v1, v2);
-print(dot);
+print(vecDot(v1, v2))

@@ -1,6 +1,4 @@
-use inkwell::values::BasicValueEnum;
-
-use crate::nscript::{AnyValue, AnyType, Environment, StateType, Object};
+use crate::nscript::{AnyValue, Environment};
 
 pub fn integer<'ctx>(env: &mut Environment<'ctx>, value: i32) -> AnyValue<'ctx> {
   AnyValue::Integer(env.integer(value))
@@ -18,7 +16,7 @@ pub fn boolean<'ctx>(env: &mut Environment<'ctx>, value: bool) -> AnyValue<'ctx>
   AnyValue::Boolean(env.boolean(value))
 }
 
-pub fn null<'ctx>(env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+pub fn null<'ctx>(_env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
   AnyValue::Null
 }
 

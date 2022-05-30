@@ -15,7 +15,7 @@ pub enum Token {
   Punctuator(Punctuator),
   Terminator,
   NewLine,
-  Empty,
+  // Empty,
 }
 
 impl Display for Token {

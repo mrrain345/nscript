@@ -4,12 +4,12 @@ use std::vec;
 
 use combine::Positioned;
 use combine::easy::Errors;
-use combine::stream::{RangeStream, position::{Stream as PositionStream, SourcePosition}};
-use combine::parser::{EasyParser, Parser, char, repeat};
+use combine::stream::position::{Stream as PositionStream};
+use combine::parser::{EasyParser, char, repeat};
+
 
 use self::tokens::terminator;
-
-use super::tokenizer::{self, Token};
+use super::tokenizer::Token;
 
 mod expressions;
 mod operations;
@@ -17,11 +17,10 @@ mod statements;
 mod call;
 mod object;
 mod prop_chain;
-mod type_;
 pub mod tokens;
 
-pub use type_::Type;
 pub use expressions::{expression, Expression, Property, PropertyValue};
+pub use operations::operation;
 
 
 pub fn parse<'src>(tokens: &[Token]) -> Result<Vec<Expression>, Errors<Token, &[Token], usize>> {

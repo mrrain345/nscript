@@ -2,7 +2,6 @@ use combine::{parser, Stream, attempt, choice};
 
 use crate::tokenizer::Token;
 
-use super::Type;
 use super::operations::{operation, assignment_operation};
 use super::statements::statement;
 
@@ -43,8 +42,8 @@ pub enum Expression {
   Equal(Box<Expression>, Box<Expression>),
   NotEqual(Box<Expression>, Box<Expression>),
   
-  Let { name: String, type_: Option<Type>, value: Box<Expression> },
-  Var { name: String, type_: Option<Type>, value: Option<Box<Expression>> },
+  Let { name: String, type_: Option<String>, value: Box<Expression> },
+  Var { name: String, type_: Option<String>, value: Option<Box<Expression>> },
 
   Assign { ptr: Box<Expression>, value: Box<Expression> },
   AddAssign { ptr: Box<Expression>, value: Box<Expression> },
@@ -59,13 +58,13 @@ pub enum Expression {
   LeftShiftAssign { ptr: Box<Expression>, value: Box<Expression> },
   RightShiftAssign { ptr: Box<Expression>, value: Box<Expression> },
 
-  Fn { name: String, args: Vec<(String, Type)>, return_type: Type, body: Vec<Expression> },
+  Fn { name: String, args: Vec<(String, String)>, return_type: String, body: Vec<Expression> },
   Call { name: String, args: Vec<Expression> },
   Return(Box<Expression>),
 
   If { condition: Box<Expression>, then: Vec<Expression>, else_: Vec<Expression> },
   // While { condition: Box<Expression>, body: Vec<Expression> },
-  // For { index: Option<String>, index_type: Option<Type>, iter: String, iter_type: Option<Type>, generator: Box<Expression>, body: Vec<Expression> },
+  // For { index: Option<String>, index_type: Option<String>, iter: String, iter_type: Option<String>, generator: Box<Expression>, body: Vec<Expression> },
   // Break,
   // Continue,
 
@@ -77,14 +76,14 @@ pub enum Expression {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Property {
   pub name: String,
-  pub type_: Type,
+  pub type_: String,
   pub modifiers: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PropertyValue {
   pub name: String,
-  pub type_: Option<Type>,
+  pub type_: Option<String>,
   pub modifiers: Option<Vec<String>>,
   pub value: Expression,
 }

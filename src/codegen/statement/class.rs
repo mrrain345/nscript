@@ -1,3 +1,4 @@
+use crate::nscript::AnyType;
 use crate::parser;
 
 use crate::{nscript::{AnyValue, Environment, Class, Property}};
@@ -7,7 +8,7 @@ pub fn class<'ctx>(env: &mut Environment<'ctx>, name: &String, properties: &[par
   let props = properties.iter().map(|prop| {
     Property {
       name: prop.name.clone(),
-      type_: prop.type_.into_type(env).expect(format!("Failed to get type `{:?}`", prop.type_).as_str()),
+      type_: AnyType::from_string(env, prop.type_.as_str()).expect(format!("Failed to get type `{:?}`", prop.type_).as_str()),
       modifiers: prop.modifiers.clone(),
     }
   }).collect();

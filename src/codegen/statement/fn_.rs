@@ -1,11 +1,11 @@
 use inkwell::types::AnyTypeEnum;
 
-use crate::{parser::{Expression, Type}, nscript::{AnyValue, Environment, Function}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment, Function, AnyType}};
 
-pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[(String, Type)], return_type: &Type, body: &[Expression]) -> AnyValue<'ctx> {
+pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[(String, String)], return_type: &String, body: &[Expression]) -> AnyValue<'ctx> {
   // Get the return type
-  let return_type = return_type.into_type(env).unwrap();
-  let args = args.iter().map(|(name, type_)| (name.to_owned(), type_.into_type(env).unwrap()) ).collect::<Vec<_>>();
+  let return_type = AnyType::from_string(env, return_type).unwrap();
+  let args = args.iter().map(|(name, type_)| (name.to_owned(), AnyType::from_string(env, type_).unwrap()) ).collect::<Vec<_>>();
 
   print!("fn {}(", name);
   for (i, (name, type_)) in args.iter().enumerate() {

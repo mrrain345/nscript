@@ -1,6 +1,6 @@
-use crate::{parser::{Expression, Type}, nscript::{AnyValue, AnyType, Environment}};
+use crate::{parser::Expression, nscript::{AnyValue, AnyType, Environment}};
 
-pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Type>, value: Option<&Expression>) -> AnyValue<'ctx> {
+pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<String>, value: Option<&Expression>) -> AnyValue<'ctx> {
   // if value.is_none() {
   //   if type_.is_none() {
   //     panic!("Parser error: you must specify a type or a value for variable `{name}`");

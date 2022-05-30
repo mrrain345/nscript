@@ -1,32 +1,42 @@
-use combine::{Stream, parser::repeat, parser, optional, between};
-use crate::parser::{Expression, tokens::*, Type, expression};
+use combine::{Stream, parser::repeat, parser, optional};
+use crate::parser::{Expression, tokens::*, expression};
 
 parser! {
+  /// Syntax:
+  /// ```
+  /// fn <identifier> ( <identifier> : <type> , )* [-> <type>] { <expression>* }
+  /// ```
   pub fn fn_[I]()(I) -> Expression
   where [ I: Stream<Token=Token> ] {
 
-    keyword(Keyword::Fn).with((
-      identifier().skip(punctuator(Punctuator::LeftParen)), // name
+    ignore_newlines!(
+      keyword(Keyword::Fn),
+      identifier(), // name
+      punctuator(Punctuator::LeftParen),
       repeat::sep_end_by( // args
-        identifier()
-          .skip(punctuator(Punctuator::Colon))
-          .and(type_())
-          .map(|(name, type_)| (name, Type(type_))),
+        ignore_newlines!(
+          identifier(), // arg name
+          punctuator(Punctuator::Colon),
+          type_(), // arg type
+        ).map(|(name, _, type_)| (name, type_)),
         punctuator(Punctuator::Comma),
-      )
-      .skip(punctuator(Punctuator::RightBrace)),
-      optional(operator(Operator::Arrow).with(type_())) // return type
-        .map(|type_| type_.map(Type)),
-      between (
-        punctuator(Punctuator::LeftBrace),
-        punctuator(Punctuator::RightBrace),
-        repeat::sep_end_by(expression(), terminator())
-      ) // body
-    ))
-    .map(|(name, args, type_, body)| Expression::Fn {
+      ),
+      punctuator(Punctuator::RightParen),
+      optional(  // return_type
+        ignore_newlines!(
+          operator(Operator::Arrow),
+          type_(),
+        ).map(|(_, type_)| type_)
+      ),
+      punctuator(Punctuator::LeftBrace),
+      repeat::sep_end_by(expression(), terminator()), // body
+      punctuator(Punctuator::RightBrace),
+    )
+    
+    .map(|(_, name, _, args, _, return_type, _, body, _)| Expression::Fn {
       name,
       args,
-      return_type: type_.unwrap_or(Type("null".to_string())),
+      return_type: return_type.unwrap_or("null".to_string()),
       body,
     })
   }
