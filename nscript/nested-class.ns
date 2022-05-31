@@ -20,9 +20,10 @@ print(t.z);
 print(t.vec.x);
 print(t.vec.y);
 
-t.z = 5;
-t.vec.x = 15;
+t.vec.x = 100;
+t.vec.y = 200;
+t.z = 300;
 
+print(t.z);
 print(t.vec.x);
 print(t.vec.y);
-print(t.z);

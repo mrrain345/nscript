@@ -1,4 +1,4 @@
-use inkwell::types::StructType;
+use inkwell::{types::{StructType, PointerType}, AddressSpace};
 
 use super::{AnyType, Environment};
 
@@ -36,6 +36,10 @@ impl<'ctx> Class<'ctx> {
 
   pub fn struct_type(&self) -> StructType<'ctx> {
     self.struct_type.clone()
+  }
+
+  pub fn ptr_type(&self) -> PointerType<'ctx> {
+    self.struct_type.ptr_type(AddressSpace::Generic)
   }
 
   pub fn position(&self, name: &str) -> Option<usize> {

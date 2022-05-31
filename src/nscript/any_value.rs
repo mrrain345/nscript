@@ -1,6 +1,5 @@
 use std::fmt::{Display, Formatter, Error};
 
-use combine::{Parser, Stream};
 use inkwell::values::{IntValue, FloatValue, PointerValue, BasicValueEnum, BasicMetadataValueEnum};
 
 use super::{Environment, AnyType, Class, Object, Function};
@@ -33,9 +32,23 @@ impl<'ctx> AnyValue<'ctx> {
       AnyValue::Boolean(value) => env.builder.build_alloca(value.get_type(), "Boolean"),
       AnyValue::Null => env.builder.build_alloca(env.context.bool_type(), "null"),
       AnyValue::Ptr { ptr, .. } => env.builder.build_alloca(ptr.get_type(), "ptr"),
-      AnyValue::Object(object) => env.builder.build_alloca(object.class().struct_type(), "Object"),
+      AnyValue::Object(ref object) => env.builder.build_alloca(object.struct_ptr().get_type(), "Object"),
       _ => panic!("Invalid type")
     }
+  }
+
+  pub fn store(&self, env: &mut Environment<'ctx>, ptr: PointerValue<'ctx>) {
+    match *self {
+      AnyValue::Integer(value) => env.builder.build_store(ptr, value),
+      AnyValue::Number(value) => env.builder.build_store(ptr, value),
+      AnyValue::Boolean(value) => env.builder.build_store(ptr, value),
+      AnyValue::Object(ref object) => {
+        // let value = env.builder.build_load(object.struct_ptr(), property_name);
+        env.builder.build_store(ptr, object.struct_ptr())
+        
+      },
+      _ => unimplemented!()
+    };
   }
 
   pub fn deref(self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
@@ -96,7 +109,7 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn get_type(&self) -> AnyType {
+  pub fn get_type(&self) -> AnyType<'ctx> {
     match self {
       AnyValue::Integer(_) => AnyType::Integer,
       AnyValue::Number(_) => AnyType::Number,

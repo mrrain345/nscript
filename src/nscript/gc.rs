@@ -1,4 +1,4 @@
-use super::{AnyValue, Object};
+use super::{Object};
 
 #[derive(Debug)]
 pub struct GarbageCollector<'ctx> {

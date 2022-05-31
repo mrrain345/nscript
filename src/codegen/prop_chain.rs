@@ -6,39 +6,24 @@ pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain:
 
   // If chain is empty, return the object
   if chain.is_empty() { return object; }
+
+  let (mut ptr, mut type_) = object.into_ptr();
   
-  // Get the property
-  chain.iter().fold(object, |object, property| {
-
-    // Check if object is a pointer
-    if !object.is_ptr() {
-      panic!("Parser error: object `{object}` is not a pointer");
-    }
-    
-    let (ptr, type_) = object.into_ptr();
-    
-    // Check if object is an object
-    if !type_.is_object() {
-      panic!("Property `{property}` has invalid type: `{type_}`");
-    }
-
+  for prop_name in chain {
     let class = type_.into_object();
-
-    // Get property's position
-    let prop_positon = class.position(property)
-      .expect(format!("Property `{property}` not found").as_str());
     
-    // Get property's type
-    let prop_type = class.get_property(prop_positon).type_;
-
-    let struct_ptr = env.builder.build_struct_gep(ptr, prop_positon as u32, &property).unwrap();
+    // Get the property
+    let position = class.position(prop_name)
+      .expect(format!("Parser error: invalid property name `{prop_name}` in object `{type_}`").as_str());
+    let property = class.get_property(position);
     
-    // If property is an object, dereference a pointer
-    if prop_type.is_object() {
-      let struct_ptr = env.builder.build_load(struct_ptr, &property).into_pointer_value();
-      AnyValue::Ptr { ptr: struct_ptr, type_: prop_type }
-    } else {
-      AnyValue::Ptr { ptr: struct_ptr, type_: prop_type }
-    }
-  })
+    // Get the property's pointer
+    let obj_ptr = env.builder.build_load(ptr, prop_name).into_pointer_value();
+    ptr = env.builder.build_struct_gep(obj_ptr, position as u32, prop_name)
+      .expect(format!("Parser error: property `{prop_name}` [{position}] doesn't exist in object of type `{type_}`").as_str());
+    type_ = property.type_;
+  }
+
+  // Return a pointer to the property
+  AnyValue::Ptr { ptr, type_ }
 }

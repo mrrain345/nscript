@@ -5,27 +5,26 @@ pub fn assign<'ctx>(env: &mut Environment<'ctx>, ptr: &Expression, value: &Expre
   let value = value.codegen(env);
 
   if !ptr.is_ptr() {
-    panic!("Invalid pointer `{ptr:?}`");
+    panic!("Invalid pointer `{ptr}`");
   }
 
   let (ptr, type_) = ptr.into_ptr();
+  let value = value.silent_cast(env, &type_).unwrap();
 
-  if type_ != value.get_type() {
-    panic!("Type mismatch: cannot assign `{value:?}` to `{ptr:?}`", value = value, ptr = ptr);
-  }
+  value.store(env, ptr);
 
-  match value {
-    AnyValue::Integer(value) => {
-      env.builder.build_store(ptr, value);
-    },
-    AnyValue::Number(value) => {
-      env.builder.build_store(ptr, value);
-    },
-    AnyValue::Boolean(value) => {
-      env.builder.build_store(ptr, value);
-    },
-    _ => panic!("Parser error: invalid type `{value:?}`")
-  }
+  // match value {
+  //   AnyValue::Integer(value) => {
+  //     env.builder.build_store(ptr, value);
+  //   },
+  //   AnyValue::Number(value) => {
+  //     env.builder.build_store(ptr, value);
+  //   },
+  //   AnyValue::Boolean(value) => {
+  //     env.builder.build_store(ptr, value);
+  //   },
+  //   _ => panic!("Parser error: invalid type `{value}`")
+  // }
 
   value
 

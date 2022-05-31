@@ -8,8 +8,5 @@ var v = Vector {
   y = 20,
 }
 
-var a = 1
-var b = 2
-
 print(v.x)
 print(v.y)

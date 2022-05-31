@@ -1,6 +1,6 @@
 use std::{sync::RwLock, rc::Rc};
 
-use inkwell::values::{StructValue, PointerValue};
+use inkwell::values::PointerValue;
 
 use super::{Class, AnyValue, Environment, AnyType};
 
@@ -25,16 +25,7 @@ impl<'ctx> Object<'ctx> {
       let ptr = env.builder.build_struct_gep(struct_ptr, index as u32, property_name).unwrap();
 
       // Set the property's value
-      match *property {
-        AnyValue::Integer(value) => env.builder.build_store(ptr, value),
-        AnyValue::Number(value) => env.builder.build_store(ptr, value),
-        AnyValue::Boolean(value) => env.builder.build_store(ptr, value),
-        AnyValue::Object(ref object) => {
-          let value = env.builder.build_load(object.struct_ptr(), property_name);
-          env.builder.build_store(ptr, value)
-        },
-        _ => panic!("Parser error: invalid type of property `{property_name:?}` in class `{name:?}`", name=class.name_or_default()),
-      };
+      property.store(env, ptr);
     }
 
     // Return the object
@@ -48,27 +39,6 @@ impl<'ctx> Object<'ctx> {
 
     obj
   }
-
-  // pub fn from_struct_value(env: &mut Environment<'ctx>, class: &'ctx Class<'ctx>, struct_value: StructValue<'ctx>) -> Self {
-    
-  //   let properties = class.properties()
-  //     .iter()
-  //     .enumerate()
-  //     .map(|(index, property)| {
-  //       let property_name = class.get_property(index).name.as_ref();
-  //       let property_value = env.builder.build_extract_value(struct_value, index as u32, property_name).unwrap();
-
-  //       match property.type_ {
-  //         AnyType::Integer => AnyValue::Integer(property_value.into_int_value()),
-  //         AnyType::Number => AnyValue::Number(property_value.into_float_value()),
-  //         AnyType::Boolean => AnyValue::Boolean(property_value.into_int_value()),
-  //         _ => panic!("Parser error: invalid type of property `{property_name:?}` in class `{name:?}`", name=class.name_or_default()),
-  //       }
-  //     })
-  //     .collect();
-
-  //   Object::new(env, class, properties)
-  // }
 
   pub fn class(&self) -> &'ctx Class<'ctx> {
     self.class
@@ -88,6 +58,10 @@ impl<'ctx> Object<'ctx> {
 
   pub fn struct_ptr(&self) -> PointerValue<'ctx> {
     self.struct_ptr
+  }
+
+  pub fn get_type(&self) -> AnyType<'ctx> {
+    AnyType::Object(self.class())
   }
 }
 

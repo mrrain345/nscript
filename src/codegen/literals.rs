@@ -1,11 +1,11 @@
 use crate::nscript::{AnyValue, Environment};
 
 pub fn integer<'ctx>(env: &mut Environment<'ctx>, value: i32) -> AnyValue<'ctx> {
-  AnyValue::Integer(env.integer(value))
+  AnyValue::Integer(env.context.i32_type().const_int(value as u64, false))
 }
 
 pub fn number<'ctx>(env: &mut Environment<'ctx>, value: f64) -> AnyValue<'ctx> {
-  AnyValue::Number(env.number(value))
+  AnyValue::Number(env.context.f64_type().const_float(value))
 }
 
 pub fn string<'ctx>(env: &mut Environment<'ctx>, value: &str) -> AnyValue<'ctx> {
@@ -13,7 +13,7 @@ pub fn string<'ctx>(env: &mut Environment<'ctx>, value: &str) -> AnyValue<'ctx> 
 }
 
 pub fn boolean<'ctx>(env: &mut Environment<'ctx>, value: bool) -> AnyValue<'ctx> {
-  AnyValue::Boolean(env.boolean(value))
+  AnyValue::Boolean(env.context.bool_type().const_int(value as u64, false))
 }
 
 pub fn null<'ctx>(_env: &mut Environment<'ctx>) -> AnyValue<'ctx> {

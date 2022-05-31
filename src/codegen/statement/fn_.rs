@@ -6,13 +6,6 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[(String, St
   // Get the return type
   let return_type = AnyType::from_string(env, return_type).unwrap();
   let args = args.iter().map(|(name, type_)| (name.to_owned(), AnyType::from_string(env, type_).unwrap()) ).collect::<Vec<_>>();
-
-  print!("fn {}(", name);
-  for (i, (name, type_)) in args.iter().enumerate() {
-    if i > 0 { print!(", "); }
-    print!("{}: {}", name, type_);
-  }
-  println!(") -> {}\n", return_type);
   
   // Get the parameters types
   let arg_types = args.iter().map(|(_, type_)| {

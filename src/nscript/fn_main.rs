@@ -1,6 +1,6 @@
 use crate::parser::Expression;
 
-use super::{Environment, AnyType, function, Function};
+use super::{Environment, AnyType, Function};
 
 pub fn fn_main<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) -> Option<()> {
   let name = "main";
