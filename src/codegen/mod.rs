@@ -13,7 +13,7 @@ mod object;
 mod prop_chain;
 
 impl Expression {
-  pub fn codegen<'ctx>(&self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+  pub fn codegen<'ctx>(&self, env: &Environment<'ctx>) -> AnyValue<'ctx> {
     match self {
       Expression::Integer(value) => literals::integer(env, *value),
       Expression::Number(value) => literals::number(env, *value),

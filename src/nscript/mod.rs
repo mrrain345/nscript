@@ -27,10 +27,10 @@ use fn_print::fn_print;
 use fn_main::fn_main;
 
 
-pub fn compile<'ctx>(env: &mut Environment<'ctx>, expressions: &[Expression]) -> JitFunction<'ctx, unsafe extern "C" fn() -> ()> {
+pub fn compile<'ctx>(env: &Environment<'ctx>, expressions: &[Expression]) -> JitFunction<'ctx, unsafe extern "C" fn() -> ()> {
 
   // Create an execution engine
-  let execution_engine = env.module
+  let execution_engine = env.borrow_mut().module
     .create_jit_execution_engine(OptimizationLevel::None)
     .expect("Failed to create execution engine");
 

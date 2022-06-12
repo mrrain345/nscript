@@ -1,6 +1,6 @@
 use crate::{nscript::{AnyValue, Environment, Object, AnyType}, parser::PropertyValue};
 
-pub fn object<'ctx>(env: &mut Environment<'ctx>, class_name: &str, properties: &[PropertyValue]) -> AnyValue<'ctx> {
+pub fn object<'ctx>(env: &Environment<'ctx>, class_name: &str, properties: &[PropertyValue]) -> AnyValue<'ctx> {
   // Get the object's Class
   let class = env.get_class(class_name).expect("Class not found").into_class();
 

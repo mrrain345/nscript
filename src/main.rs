@@ -57,7 +57,7 @@ fn main() {
       let main = compile(&mut env, &expressions);
 
       // Save output LLVM IR to file.
-      env.module.print_to_file(Path::new("target/output.ll")).unwrap();
+      env.borrow_mut().module.print_to_file(Path::new("target/output.ll")).unwrap();
 
       // Run the main function.
       unsafe {

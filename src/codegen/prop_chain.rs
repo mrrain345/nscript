@@ -1,6 +1,6 @@
 use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
-pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain: &[String]) -> AnyValue<'ctx> {
+pub fn prop_chain<'ctx>(env: &Environment<'ctx>, object: &Expression, chain: &[String]) -> AnyValue<'ctx> {
   // Get the object
   let object = object.codegen(env);
 
@@ -8,6 +8,8 @@ pub fn prop_chain<'ctx>(env: &mut Environment<'ctx>, object: &Expression, chain:
   if chain.is_empty() { return object; }
 
   let (mut ptr, mut type_) = object.into_ptr();
+
+  let mut env = env.borrow_mut();
   
   for prop_name in chain {
     let class = type_.into_object();

@@ -1,7 +1,8 @@
 use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
-pub fn minus<'ctx>(env: &mut Environment<'ctx>, value: &Expression) -> AnyValue<'ctx> {
+pub fn minus<'ctx>(env: &Environment<'ctx>, value: &Expression) -> AnyValue<'ctx> {
   let value = value.codegen(env).deref(env);
+  let mut env = env.borrow_mut();
 
   match value {
     // Integer

@@ -2,7 +2,7 @@ use inkwell::types::AnyTypeEnum;
 
 use crate::{parser::Expression, nscript::{AnyValue, Environment, Function, AnyType}};
 
-pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[(String, String)], return_type: &String, body: &[Expression]) -> AnyValue<'ctx> {
+pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String)], return_type: &String, body: &[Expression]) -> AnyValue<'ctx> {
   // Get the return type
   let return_type = AnyType::from_string(env, return_type).unwrap();
   let args = args.iter().map(|(name, type_)| (name.to_owned(), AnyType::from_string(env, type_).unwrap()) ).collect::<Vec<_>>();
@@ -24,44 +24,55 @@ pub fn fn_<'ctx>(env: &mut Environment<'ctx>, name: &String, args: &[(String, St
     AnyTypeEnum::VoidType(type_) => type_.fn_type(&arg_types[..], false),
     AnyTypeEnum::FunctionType(_) => unreachable!("Parser error: Function type not allowed as the return type"),
   };
-
-  // Create the function
+  
   let previous_block = env.current_block();
-  let function_value = env.module.add_function(name, fn_type, None);
-  let function_block = env.context.append_basic_block(function_value, "entry");
-  env.set_current_block(function_block);
-  let function = Function::new(function_value, Some(name.clone()), args.clone(), return_type);
 
-  // Add the function to the environment
-  let fn_ = env.add_function(name.clone(), function)
-    .expect("Parser error: Function already exists");
+  let fn_ = {
+    let mut env = env.borrow_mut();
+    
+    // Create the function
+    let function_value = env.module.add_function(name, fn_type, None);
+    let function_block = env.context.append_basic_block(function_value, "entry");
+    env.set_current_block(function_block);
+    let function = Function::new(function_value, Some(name.clone()), args.clone(), return_type);
 
-  // Create the function scope
-  env.state.push_scope();
-  env.builder.position_at_end(function_block);
+    // Add the function to the environment
+    let fn_ = env.add_function(name.clone(), function)
+      .expect("Parser error: Function already exists");
 
-  // Add the parameters to the environment
-  function_value.get_params()
-    .iter()
-    .zip(args.iter())
-    .for_each(|(param, (name, type_))| {
-      env.add_label(name.clone(), AnyValue::from_basic_value(type_, *param));
-    });
+    // Create the function scope
+    env.state.push_scope();
+    env.builder.position_at_end(function_block);
+
+    // Add the parameters to the environment
+    function_value.get_params()
+      .iter()
+      .zip(args.iter())
+      .for_each(|(param, (name, type_))| {
+        env.add_label(name.clone(), AnyValue::from_basic_value(type_, *param));
+      });
+
+    fn_
+  };
 
   // Compile the function body
   for expr in body {
     expr.codegen(env);
   }
   
-  // Return null if the function is a void function
-  if return_type.is_null() {
-    env.builder.build_return(None);
-  }
+  {
+    let mut env = env.borrow_mut();
 
-  // Finish the function
-  env.state.pop_scope();
-  env.set_current_block(previous_block);
-  env.builder.position_at_end(previous_block);
+    // Return null if the function is a void function
+    if return_type.is_null() {
+      env.builder.build_return(None);
+    }
+
+    // Finish the function
+    env.state.pop_scope();
+    env.set_current_block(previous_block);
+    env.builder.position_at_end(previous_block);
+  }
 
   // Return the function
   AnyValue::Fn(fn_)

@@ -1,6 +1,6 @@
 use crate::{parser::Expression, nscript::{{AnyValue}, Environment}};
 
-pub fn assign<'ctx>(env: &mut Environment<'ctx>, ptr: &Expression, value: &Expression) -> AnyValue<'ctx> {
+pub fn assign<'ctx>(env: &Environment<'ctx>, ptr: &Expression, value: &Expression) -> AnyValue<'ctx> {
   let ptr = ptr.codegen(env);
   let value = value.codegen(env);
 
@@ -15,13 +15,13 @@ pub fn assign<'ctx>(env: &mut Environment<'ctx>, ptr: &Expression, value: &Expre
 
   // match value {
   //   AnyValue::Integer(value) => {
-  //     env.builder.build_store(ptr, value);
+  //     env.builder().build_store(ptr, value);
   //   },
   //   AnyValue::Number(value) => {
-  //     env.builder.build_store(ptr, value);
+  //     env.builder().build_store(ptr, value);
   //   },
   //   AnyValue::Boolean(value) => {
-  //     env.builder.build_store(ptr, value);
+  //     env.builder().build_store(ptr, value);
   //   },
   //   _ => panic!("Parser error: invalid type `{value}`")
   // }

@@ -3,7 +3,7 @@ use crate::parser;
 
 use crate::{nscript::{AnyValue, Environment, Class, Property}};
 
-pub fn class<'ctx>(env: &mut Environment<'ctx>, name: &String, properties: &[parser::Property]) -> AnyValue<'ctx> {
+pub fn class<'ctx>(env: &Environment<'ctx>, name: &String, properties: &[parser::Property]) -> AnyValue<'ctx> {
   
   let props = properties.iter().map(|prop| {
     Property {

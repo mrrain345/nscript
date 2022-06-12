@@ -1,6 +1,6 @@
 use crate::{parser::Expression, nscript::{AnyValue, AnyType, Environment}};
 
-pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<String>, value: Option<&Expression>) -> AnyValue<'ctx> {
+pub fn var<'ctx>(env: &Environment<'ctx>, name: &String, type_: &Option<String>, value: Option<&Expression>) -> AnyValue<'ctx> {
   let value = value.as_ref().unwrap().codegen(env).deref(env);
 
   // If value is a pointer to a primitive type, dereference it
@@ -25,21 +25,21 @@ pub fn var<'ctx>(env: &mut Environment<'ctx>, name: &String, type_: &Option<Stri
   // let (ptr, type_) = match value {
   //   AnyValue::Integer(val) => {
   //     let ptr = value.allocate(env);
-  //     env.builder.build_store(ptr, val);
+  //     env.builder().build_store(ptr, val);
   //     (ptr, AnyType::Integer)
   //   },
   //   AnyValue::Number(val) => {
   //     let ptr = value.allocate(env);
-  //     env.builder.build_store(ptr, val);
+  //     env.builder().build_store(ptr, val);
   //     (ptr, AnyType::Number)
   //   },
   //   AnyValue::Boolean(val) => {
   //     let ptr = value.allocate(env);
-  //     env.builder.build_store(ptr, val);
+  //     env.builder().build_store(ptr, val);
   //     (ptr, AnyType::Boolean)
   //   },
   //   AnyValue::Object(object) => {
-  //     // let value = env.builder.build_load(object.struct_ptr(), object.class().name_or_default()).into_struct_value();
+  //     // let value = env.builder().build_load(object.struct_ptr(), object.class().name_or_default()).into_struct_value();
   //     (object.struct_ptr(), AnyType::Object(object.class()))
   //   },
   //   _ => panic!("Parser error: invalid type `{type_:?}`, value: `{value}`")

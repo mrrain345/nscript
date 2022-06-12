@@ -2,9 +2,10 @@ use inkwell::{FloatPredicate, IntPredicate};
 
 use crate::{parser::Expression, nscript::{AnyValue, Environment}};
 
-pub fn equal<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
+pub fn equal<'ctx>(env: &Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
   let left = left.codegen(env).deref(env);
   let right = right.codegen(env).deref(env);
+  let mut env = env.borrow_mut();
 
   match (left, right) {
     // Integer == Integer

@@ -17,7 +17,7 @@ pub enum AnyType<'ctx> {
 }
 
 impl<'ctx> AnyType<'ctx> {
-  pub fn from_string(env: &mut Environment<'ctx>, type_name: &str) -> Option<AnyType<'ctx>> {
+  pub fn from_string(env: &Environment<'ctx>, type_name: &str) -> Option<AnyType<'ctx>> {
     let type_ = match type_name {
       "null" => Some(AnyType::Null),
       "Integer" => Some(AnyType::Integer),
@@ -89,7 +89,8 @@ impl<'ctx> AnyType<'ctx> {
     }
   }
 
-  pub fn into_llvm_type(self, env: &mut Environment<'ctx>) -> AnyTypeEnum<'ctx> {
+  pub fn into_llvm_type(self, env: &Environment<'ctx>) -> AnyTypeEnum<'ctx> {
+    let env = env.borrow();
     match self {
       AnyType::Integer => env.context.i32_type().into(),
       AnyType::Number => env.context.f64_type().into(),
@@ -102,7 +103,8 @@ impl<'ctx> AnyType<'ctx> {
     }
   }
 
-  pub fn into_llvm_basic_type(self, env: &mut Environment<'ctx>) -> Option<BasicTypeEnum<'ctx>> {
+  pub fn into_llvm_basic_type(self, env: &Environment<'ctx>) -> Option<BasicTypeEnum<'ctx>> {
+    let env = env.borrow();
     match self {
       AnyType::Integer => Some(env.context.i32_type().into()),
       AnyType::Number => Some(env.context.f64_type().into()),

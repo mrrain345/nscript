@@ -25,7 +25,8 @@ pub enum AnyValue<'ctx> {
 // }
 
 impl<'ctx> AnyValue<'ctx> {
-  pub fn allocate(&self, env: &mut Environment<'ctx>) -> PointerValue<'ctx> {
+  pub fn allocate(&self, env: &Environment<'ctx>) -> PointerValue<'ctx> {
+    let env = env.borrow_mut();
     match self {
       AnyValue::Integer(value) => env.builder.build_alloca(value.get_type(), "Integer"),
       AnyValue::Number(value) => env.builder.build_alloca(value.get_type(), "Number"),
@@ -37,13 +38,14 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn store(&self, env: &mut Environment<'ctx>, ptr: PointerValue<'ctx>) {
+  pub fn store(&self, env: &Environment<'ctx>, ptr: PointerValue<'ctx>) {
+    let env = env.borrow_mut();
     match *self {
       AnyValue::Integer(value) => env.builder.build_store(ptr, value),
       AnyValue::Number(value) => env.builder.build_store(ptr, value),
       AnyValue::Boolean(value) => env.builder.build_store(ptr, value),
       AnyValue::Object(ref object) => {
-        // let value = env.builder.build_load(object.struct_ptr(), property_name);
+        // let value = env.builder().build_load(object.struct_ptr(), property_name);
         env.builder.build_store(ptr, object.struct_ptr())
         
       },
@@ -51,9 +53,10 @@ impl<'ctx> AnyValue<'ctx> {
     };
   }
 
-  pub fn deref(self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+  pub fn deref(self, env: &Environment<'ctx>) -> AnyValue<'ctx> {
     if self.is_ptr() {
       let (ptr, type_) = self.into_ptr();
+      let env = env.borrow_mut();
       let value = env.builder.build_load(ptr, "deref");
       AnyValue::from_basic_value(&type_, value)
     } else {
@@ -61,9 +64,10 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn deref_clone(&self, env: &mut Environment<'ctx>) -> AnyValue<'ctx> {
+  pub fn deref_clone(&self, env: &Environment<'ctx>) -> AnyValue<'ctx> {
     if self.is_ptr() {
       let (ptr, type_) = self.clone().into_ptr();
+      let env = env.borrow_mut();
       let value = env.builder.build_load(ptr, "deref");
       AnyValue::from_basic_value(&type_, value)
     } else {
@@ -71,7 +75,7 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn silent_cast(&self, env: &mut Environment<'ctx>, type_: &AnyType) -> Option<AnyValue<'ctx>> {
+  pub fn silent_cast(&self, env: &Environment<'ctx>, type_: &AnyType) -> Option<AnyValue<'ctx>> {
     let value = if self.is_ptr() && type_.is_primitive() {
       self.deref_clone(env)
     } else {
@@ -80,7 +84,7 @@ impl<'ctx> AnyValue<'ctx> {
 
     match (value, *type_) {
       (AnyValue::Integer(value), AnyType::Integer) => Some(AnyValue::Integer(value)),
-      (AnyValue::Integer(value), AnyType::Number) => Some(AnyValue::Number(env.builder.build_signed_int_to_float(value, env.context.f64_type(), "cast"))),
+      (AnyValue::Integer(value), AnyType::Number) => Some(AnyValue::Number(env.borrow_mut().builder.build_signed_int_to_float(value, env.borrow().context.f64_type(), "cast"))),
       (AnyValue::Number(value), AnyType::Number) => Some(AnyValue::Number(value)),
       (AnyValue::Boolean(value), AnyType::Boolean) => Some(AnyValue::Boolean(value)),
       (AnyValue::Null, AnyType::Null) => Some(AnyValue::Null),

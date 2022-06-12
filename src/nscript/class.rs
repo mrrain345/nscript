@@ -10,8 +10,8 @@ pub struct Class<'ctx> {
 }
 
 impl<'ctx> Class<'ctx> {
-  pub fn new(env: &mut Environment<'ctx>, name: Option<String>, properties: Vec<Property<'ctx>>) -> Self {
-    let struct_type = env.context.struct_type(
+  pub fn new(env: &Environment<'ctx>, name: Option<String>, properties: Vec<Property<'ctx>>) -> Self {
+    let struct_type = env.borrow().context.struct_type(
       &properties
         .iter()
         .map(|p| p.type_.into_llvm_basic_type(env).expect(format!("Failed to get basic type `{:?}`", p.type_).as_str()))

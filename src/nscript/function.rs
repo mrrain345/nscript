@@ -40,7 +40,7 @@ impl<'ctx> Function<'ctx> {
     &self.return_type
   }
 
-  pub fn call(&self, env: &mut Environment<'ctx>, args: &[AnyValue<'ctx>]) -> AnyValue<'ctx> {
+  pub fn call(&self, env: &Environment<'ctx>, args: &[AnyValue<'ctx>]) -> AnyValue<'ctx> {
     // Get the function arguments
     let mut fn_args = vec![];
 
@@ -56,7 +56,7 @@ impl<'ctx> Function<'ctx> {
     }
 
     // Call the function
-    let result = env.builder.build_call(self.function_value(), &fn_args[..], self.name_or_default()).try_as_basic_value();
+    let result = env.borrow_mut().builder.build_call(self.function_value(), &fn_args[..], self.name_or_default()).try_as_basic_value();
 
     // Return the result
     if let Some(_) = result.right() {

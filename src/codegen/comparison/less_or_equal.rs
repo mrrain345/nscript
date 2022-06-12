@@ -2,9 +2,10 @@ use inkwell::{IntPredicate, FloatPredicate};
 
 use crate::{nscript::{Environment, AnyValue}, parser::Expression};
 
-pub fn less_or_equal<'ctx>(env: &mut Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
+pub fn less_or_equal<'ctx>(env: &Environment<'ctx>, left: &Expression, right: &Expression) -> AnyValue<'ctx> {
   let left = left.codegen(env).deref(env);
   let right = right.codegen(env).deref(env);
+  let mut env = env.borrow_mut();
 
   match (left, right) {
     // Integer <= Integer

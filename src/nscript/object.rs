@@ -12,17 +12,17 @@ pub struct Object<'ctx> {
 }
 
 impl<'ctx> Object<'ctx> {
-  pub fn new(env: &mut Environment<'ctx>, class: &'ctx Class<'ctx>, properties: Vec<AnyValue<'ctx>>) -> Self {
+  pub fn new(env: &Environment<'ctx>, class: &'ctx Class<'ctx>, properties: Vec<AnyValue<'ctx>>) -> Self {
     
     // Create the struct
-    let struct_ptr = env.builder.build_malloc(class.struct_type(), class.name_or_default()).unwrap();
+    let struct_ptr = env.borrow_mut().builder.build_malloc(class.struct_type(), class.name_or_default()).unwrap();
 
     // Set the struct's properties
     for (index, property) in properties.iter().enumerate() {
 
       // Get the property's name and pointer
       let property_name = class.get_property(index).name.as_ref();
-      let ptr = env.builder.build_struct_gep(struct_ptr, index as u32, property_name).unwrap();
+      let ptr = env.borrow_mut().builder.build_struct_gep(struct_ptr, index as u32, property_name).unwrap();
 
       // Set the property's value
       property.store(env, ptr);
@@ -35,7 +35,7 @@ impl<'ctx> Object<'ctx> {
       properties: Rc::new(RwLock::new(properties)),
     };
 
-    env.gc.add(obj.clone());
+    env.borrow_mut().gc.add(obj.clone());
 
     obj
   }
