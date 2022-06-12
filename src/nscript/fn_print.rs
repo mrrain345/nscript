@@ -1,135 +1,82 @@
-use inkwell::IntPredicate;
+use inkwell::{AddressSpace, module::Linkage};
 
-use super::environment::Environment;
+use super::{environment::Environment, Function, AnyType};
 
 pub fn fn_print<'ctx>(env: &mut Environment<'ctx>) -> Option<()> {
-  let name = "print";
-
   // Types
+  let i8_type = env.context.i8_type();
   let i32_type = env.context.i32_type();
+  let f64_type = env.context.f64_type();
+  let bool_type = env.context.bool_type();
   let void_type = env.context.void_type();
 
-  // Declare the putchar function (fn putchar(char: i32) -> null)
-  let putchar_type = void_type.fn_type(&[i32_type.into()], false);
-  env.module.add_function("putchar", putchar_type, None);
+  // Declare the printf function (fn printf(cstr: i8*, ...) -> i32)
+  let printf_type = i32_type.fn_type(&[i8_type.ptr_type(AddressSpace::Generic) .into()], true);
+  let printf =  env.module.add_function("printf", printf_type, Some(Linkage::AvailableExternally));
 
-  // Create the print function (fn print(digit: i32) -> null)
+
+  // Create printInt function
   let fn_type = void_type.fn_type(&[i32_type.into()], false);
-  let function = env.module.add_function(name, fn_type, None);
-  
-  // Create blocks
-  let entry_block = env.context.append_basic_block(function, "entry");
-  let if0_block = env.context.append_basic_block(function, "if0");
-  let loop0_block = env.context.append_basic_block(function, "loop0");
-  let loop1_block = env.context.append_basic_block(function, "loop1");
-  let exit_block = env.context.append_basic_block(function, "exit");
+  let print_int = env.module.add_function("printInt", fn_type, None);
 
-  // Constants
-  let const_0 = i32_type.const_int(0, false);
-  let const_1 = i32_type.const_int(1, false);
-  let const_10 = i32_type.const_int(10, false);
-  let const_11 = i32_type.const_int(11, false);
-  let newline = i32_type.const_int(10, false);
-  let offset = i32_type.const_int(b'0' as u64, false);
-  let minus = i32_type.const_int(b'-' as u64, false);
+  // Create printNum function
+  let fn_type = void_type.fn_type(&[f64_type.into()], false);
+  let print_num = env.module.add_function("printNum", fn_type, None);
 
-  // Get the putchar function
-  let putchar = env.module.get_function("putchar")?;
-  
-  // --- Entry block ---
+  // Create printBool function
+  let fn_type = void_type.fn_type(&[bool_type.into()], false);
+  let print_bool = env.module.add_function("printBool", fn_type, None);
+
+
+  // Create the printInt function
+  let entry_block = env.context.append_basic_block(print_int, "entry");
   env.builder.position_at_end(entry_block);
-
-  // Create local variables
-  let number = env.builder.build_alloca(i32_type, name);
-  let iter = env.builder.build_alloca(i32_type, name);
-
-  // Create an array of 11 elements
-  let array = env.builder.build_array_alloca(i32_type, const_11, name);
-
-  // Get an argument and store it
-  let arg = function.get_nth_param(0)?.into_int_value();
-  env.builder.build_store(number, arg);
-
-  // Clear the iterator
-  env.builder.build_store(iter, const_0);
-
-  // Check if number is negative
-  let num = env.builder.build_load(number, name).into_int_value();
-  let is_negative = env.builder.build_int_compare(IntPredicate::SLT, num, const_0, name);
-
-  // If number is negative, print a minus sign
-  env.builder.build_conditional_branch(is_negative, if0_block, loop0_block);
-
-
-  // --- If block ---
-  env.builder.position_at_end(if0_block);
-
-  // Print a minus sign
-  env.builder.build_call(putchar, &[minus.into()], "putchar");
-
-  // Calculate the absolute value of the number
-  let num = env.builder.build_load(number, name).into_int_value();
-  let num = env.builder.build_int_sub(const_0, num, name);
-  env.builder.build_store(number, num);
-
-  // Jump to the loop0 block
-  env.builder.build_unconditional_branch(loop0_block);
-
-
-  // --- Loop0 block ---
-  env.builder.position_at_end(loop0_block);
-
-  // Convert a number to an ASCII character
-  let num = env.builder.build_load(number, name).into_int_value();
-  let digit = env.builder.build_int_signed_rem(num, const_10, name);
-  let ascii = env.builder.build_int_add(digit, offset, name);
-
-  // Store a digit in the array
-  let index = env.builder.build_load(iter, name).into_int_value();
-  let ptr = unsafe { env.builder.build_gep(array, &[index], name) };
-  env.builder.build_store(ptr, ascii);
-
-  // Divide the number by 10 and store it
-  let num = env.builder.build_int_signed_div(num, const_10, name);
-  env.builder.build_store(number, num);
-
-  // Increment the iterator
-  let index = env.builder.build_load(iter, name).into_int_value();
-  let new_iter = env.builder.build_int_add(index, const_1, name);
-  env.builder.build_store(iter, new_iter);
-
-  // If the number is zero, jump to the loop1 block, else jump to on the beginning of the loop0
-  let num = env.builder.build_load(number, name).into_int_value();
-  let is_zero = env.builder.build_int_compare(IntPredicate::EQ, num, const_0, name);
-  env.builder.build_conditional_branch(is_zero, loop1_block, loop0_block);
-
-
-  // --- Loop1 block ---
-  env.builder.position_at_end(loop1_block);
-
-  // Decrement the iterator
-  let index = env.builder.build_load(iter, name).into_int_value();
-  let new_iter = env.builder.build_int_sub(index, const_1, name);
-  env.builder.build_store(iter, new_iter);
-
-  // Print a character from the array
-  let index = env.builder.build_load(iter, name).into_int_value();
-  let ptr = unsafe { env.builder.build_gep(array, &[index], name) };
-  let ascii = env.builder.build_load(ptr, name).into_int_value();
-  env.builder.build_call(putchar, &[ascii.into()], name);
-
-  // If the iterator is zero, jump to the exit block, else jump to on the beginning of the loop1
-  let index = env.builder.build_load(iter, name).into_int_value();
-  let cmp = env.builder.build_int_compare(IntPredicate::EQ, index, const_0, name);
-  env.builder.build_conditional_branch(cmp, exit_block, loop1_block);
-
-  // --- Exit block ---
-  env.builder.position_at_end(exit_block);
-
-  // Print a newline
-  env.builder.build_call(putchar, &[newline.into()], name);
-
-  // Return
+  let format = env.builder.build_global_string_ptr("%d\n", "format");
+  let arg = print_int.get_nth_param(0)?.into_int_value();
+  let args = [format.as_pointer_value().into(), arg.into()];
+  env.builder.build_call(printf, &args, "printf");
   env.builder.build_return(None);
+
+  // Create the printNum function
+  let entry_block = env.context.append_basic_block(print_num, "entry");
+  env.builder.position_at_end(entry_block);
+  let format = env.builder.build_global_string_ptr("%f\n", "format");
+  let arg = print_num.get_nth_param(0)?.into_float_value();
+  let args = [format.as_pointer_value().into(), arg.into()];
+  env.builder.build_call(printf, &args, "printf");
+  env.builder.build_return(None);
+
+  // Create the printBool function
+  let entry_block = env.context.append_basic_block(print_bool, "entry");
+  let true_block = env.context.append_basic_block(print_bool, "true");
+  let false_block = env.context.append_basic_block(print_bool, "false");
+  env.builder.position_at_end(entry_block);
+  let str_true = env.builder.build_global_string_ptr("true\n", "true");
+  let str_false = env.builder.build_global_string_ptr("false\n", "false");
+  let arg = print_bool.get_nth_param(0)?.into_int_value();
+  env.builder.build_conditional_branch(arg, true_block, false_block);
+
+  env.builder.position_at_end(true_block);
+  let args = [str_true.as_pointer_value().into()];
+  env.builder.build_call(printf, &args, "printf");
+  env.builder.build_return(None);
+
+  env.builder.position_at_end(false_block);
+  let args = [str_false.as_pointer_value().into()];
+  env.builder.build_call(printf, &args, "printf");
+  env.builder.build_return(None);
+
+
+  // Create function objects
+  let print_int = Function::new(print_int, Some("printInt".to_owned()), vec![("value".into(), AnyType::Integer)], AnyType::Null);
+  let print_num = Function::new(print_num, Some("printNum".to_owned()), vec![("value".into(), AnyType::Number)], AnyType::Null);
+  let print_bool = Function::new(print_bool, Some("printBool".to_owned()), vec![("value".into(), AnyType::Boolean)], AnyType::Null);
+
+  // Add print function to the environment
+  env.add_function("print".into(), print_int.clone());
+  env.add_function("printInt".into(), print_int);
+  env.add_function("printNum".into(), print_num);
+  env.add_function("printBool".into(), print_bool);
+
   Some(())
 }

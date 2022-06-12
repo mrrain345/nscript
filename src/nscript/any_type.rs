@@ -1,8 +1,8 @@
 use std::fmt::{Display, Error, Formatter};
 
-use inkwell::{types::{AnyTypeEnum, BasicTypeEnum}, AddressSpace};
+use inkwell::types::{AnyTypeEnum, BasicTypeEnum};
 
-use super::{Environment, AnyValue, Class};
+use super::{Environment, Class};
 
 #[derive(Debug, Clone, PartialEq, Copy)]
 pub enum AnyType<'ctx> {
@@ -96,8 +96,8 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::String => todo!(),
       AnyType::Boolean => env.context.i8_type().into(),
       AnyType::Null => env.context.void_type().into(),
-      AnyType::Class(class) => class.struct_type().into(),
-      AnyType::Object(class) => class.struct_type().into(),
+      // AnyType::Class(class) => class.struct_type().into(),
+      AnyType::Object(class) => class.ptr_type().into(),
       _ => panic!("Unsupported type"),
     }
   }
@@ -108,8 +108,8 @@ impl<'ctx> AnyType<'ctx> {
       AnyType::Number => Some(env.context.f64_type().into()),
       AnyType::String => todo!(),
       AnyType::Boolean => Some(env.context.i8_type().into()),
+      // AnyType::Class(class) => Some(class.struct_type().into()),
       AnyType::Object(class) => Some(class.ptr_type().into()),
-      AnyType::Class(class) => Some(class.struct_type().into()),
       _ => None,
     }
   }

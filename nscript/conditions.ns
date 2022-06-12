@@ -1,6 +1,6 @@
 var x = 0;
 var y = 4;
-if 5 == 4 {
+if 5 > 4 {
   x = 1;
   print(1);
   print(y);
@@ -12,3 +12,13 @@ if 5 == 4 {
 };
 print(x);
 print(y);
+
+fn test(x: Integer) {
+  if x > 0 {
+    print(x);
+  } else {
+    print(x*2);
+  };
+};
+
+test(1)
