@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use inkwell::basic_block::BasicBlock;
 
-use crate::append_list::AppendList;
-
-use super::{AnyValue, Class};
+use super::values::AnyValue;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StateType {
@@ -19,7 +17,6 @@ pub type StateValue<'ctx> = (AnyValue<'ctx>, StateType);
 #[derive(Debug)]
 pub struct State<'ctx> {
   scopes: Vec<HashMap<String, StateValue<'ctx>>>,
-  classes: AppendList<'ctx, Class<'ctx>>,
   current_block: Option<BasicBlock<'ctx>>,
 }
 
@@ -27,7 +24,6 @@ impl<'ctx> State<'ctx> {
   pub fn new() -> Self {
     State {
       scopes: vec![HashMap::new()],
-      classes: AppendList::new(),
       current_block: None,
     }
   }
@@ -109,13 +105,5 @@ impl<'ctx> State<'ctx> {
     // Set new value in the same scope
     scope.insert(name, (value.clone(), type_));
     Some(value)
-  }
-
-  // Classes
-
-  /// Adds a new class to the list
-  pub fn add_class(&mut self, class: Class<'ctx>) -> &'ctx Class<'ctx> {
-    self.classes.push(class);
-    self.classes.get(self.classes.len() - 1).unwrap()
   }
 }

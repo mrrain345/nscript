@@ -3,11 +3,13 @@ fn add(a: Integer, b: Integer) -> Integer {
 };
 
 fn print_smth() {
+  var x = 2;
+  
   fn add(a: Integer, b: Integer) -> Integer {
     return a + b*2;
   };
 
-  print(add(40, 2));
+  print(add(40, x));
 };
 
 print_smth();

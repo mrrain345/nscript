@@ -1,6 +1,6 @@
 use inkwell::{AddressSpace, module::Linkage};
 
-use super::{environment::Environment, Function, AnyType};
+use super::{environment::Environment, AnyType, values::Function};
 
 pub fn fn_print<'ctx>(env: &Environment<'ctx>) -> Option<()> {
   let (print_int, print_num, print_bool) = {

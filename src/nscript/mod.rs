@@ -2,25 +2,23 @@ use inkwell::{execution_engine::JitFunction, OptimizationLevel};
 
 use crate::parser::Expression;
 
+pub mod types;
+pub mod values;
+
+pub use types::Type;
+
 mod fn_print;
 mod fn_main;
 
-mod any_value;
 mod any_type;
 mod state;
 mod environment;
-mod class;
-mod object;
-mod function;
 mod gc;
 
-pub use any_value::AnyValue;
-pub use any_type::AnyType;
+pub use types::AnyType;
+pub use values::AnyValue;
 pub use state::{State, StateType};
 pub use environment::Environment;
-pub use class::{Class, Property};
-pub use object::Object;
-pub use function::Function;
 pub use gc::GarbageCollector;
 
 use fn_print::fn_print;

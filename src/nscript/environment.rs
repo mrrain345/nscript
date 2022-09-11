@@ -2,7 +2,7 @@ use std::sync::{RwLock, RwLockWriteGuard, RwLockReadGuard};
 
 use inkwell::{context::Context, module::Module, builder::Builder, values::PointerValue, basic_block::BasicBlock};
 
-use super::{state::State, StateType, AnyValue, AnyType, Class, Function, GarbageCollector};
+use super::{state::State, StateType, AnyType, GarbageCollector, values::{AnyValue, Function, Class, Ref}};
 
 #[derive(Debug)]
 pub struct EnvironmentData<'ctx> {
@@ -76,36 +76,36 @@ impl<'ctx> Environment<'ctx> {
   /// Adds a new variable to the topmost scope
   pub fn add_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
     let mut env = self.0.write().unwrap();
-    env.state.add(name, AnyValue::Ptr{ ptr, type_ }, StateType::Variable)
+    env.state.add(name, Ref::new(type_, ptr).into(), StateType::Variable)
   }
 
   /// Changes the value of the variable from any scope
   pub fn set_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
     let mut env = self.0.write().unwrap();
-    env.state.set(name, AnyValue::Ptr{ ptr, type_ }, StateType::Variable)
+    env.state.set(name, Ref::new(type_, ptr).into(), StateType::Variable)
   }
 
   // Functions
 
   /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<Box<Function<'ctx>>> {
+  pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
     let env = self.0.read().unwrap();
     env.state.get(name, Some(StateType::Function)).map(|(value, ..)| value)
-      .map(|value| value.into_function())
+      .map(|value| value.into())
   }
 
   /// Adds a new function to the topmost scope
-  pub fn add_function(&self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
+  pub fn add_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
     let mut env = self.0.write().unwrap();
-    env.state.add(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
-      .map(|value| value.into_function())
+    env.state.add(name.clone(), AnyValue::Function(function), StateType::Function)
+      .map(|value| value.into())
   }
 
   /// Changes the value of the function from any scope
-  pub fn set_function(&self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
+  pub fn set_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
     let mut env = self.0.write().unwrap();
-    env.state.set(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
-      .map(|value| value.into_function())
+    env.state.set(name.clone(), AnyValue::Function(function), StateType::Function)
+      .map(|value| value.into())
   }
 
   // Classes
@@ -119,14 +119,12 @@ impl<'ctx> Environment<'ctx> {
   /// Adds a new class to the topmost scope
   pub fn add_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
     let mut env = self.0.write().unwrap();
-    let class = env.state.add_class(class);
     env.state.add(name.clone(), AnyValue::Class(class), StateType::Class)
   }
 
   /// Changes the value of the class from any scope
   pub fn set_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
     let mut env = self.0.write().unwrap();
-    let class = env.state.add_class(class);
     env.state.set(name.clone(), AnyValue::Class(class), StateType::Class)
   }
 }
@@ -167,32 +165,32 @@ impl<'ctx> EnvironmentData<'ctx> {
 
   /// Adds a new variable to the topmost scope
   pub fn add_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.add(name, AnyValue::Ptr{ ptr, type_ }, StateType::Variable)
+    self.state.add(name, Ref::new(type_, ptr).into(), StateType::Variable)
   }
 
   /// Changes the value of the variable from any scope
   pub fn set_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.set(name, AnyValue::Ptr{ ptr, type_ }, StateType::Variable)
+    self.state.set(name, Ref::new(type_, ptr).into(), StateType::Variable)
   }
 
   // Functions
 
   /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<Box<Function<'ctx>>> {
+  pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
     self.state.get(name, Some(StateType::Function)).map(|(value, ..)| value)
-      .map(|value| value.into_function())
+      .map(|value| value.into())
   }
 
   /// Adds a new function to the topmost scope
-  pub fn add_function(&mut self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
-    self.state.add(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
-      .map(|value| value.into_function())
+  pub fn add_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+    self.state.add(name.clone(), AnyValue::Function(function), StateType::Function)
+      .map(|value| value.into())
   }
 
   /// Changes the value of the function from any scope
-  pub fn set_function(&mut self, name: String, function: Function<'ctx>) -> Option<Box<Function<'ctx>>> {
-    self.state.set(name.clone(), AnyValue::Fn(Box::new(function)), StateType::Function)
-      .map(|value| value.into_function())
+  pub fn set_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+    self.state.set(name.clone(), AnyValue::Function(function), StateType::Function)
+      .map(|value| value.into())
   }
 
   // Classes
@@ -204,13 +202,11 @@ impl<'ctx> EnvironmentData<'ctx> {
 
   /// Adds a new class to the topmost scope
   pub fn add_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    let class = self.state.add_class(class);
     self.state.add(name.clone(), AnyValue::Class(class), StateType::Class)
   }
 
   /// Changes the value of the class from any scope
   pub fn set_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    let class = self.state.add_class(class);
     self.state.set(name.clone(), AnyValue::Class(class), StateType::Class)
   }
 }

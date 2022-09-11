@@ -1,23 +1,38 @@
-use inkwell::values::FunctionValue;
+use std::{rc::Rc, ops::Deref};
 
-use super::{AnyType, Environment, AnyValue};
+use inkwell::values::{FunctionValue, PointerValue, BasicValueEnum, BasicMetadataValueEnum};
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Function<'ctx> {
+use crate::nscript::{AnyType, Environment, types::FunctionType};
+
+use super::{value::Value, AnyValue};
+
+#[derive(Debug, PartialEq)]
+struct FunctionData<'ctx> {
   fn_value: FunctionValue<'ctx>,
   name: Option<String>,
   args: Vec<(String, AnyType<'ctx>)>,
   return_type: AnyType<'ctx>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function<'ctx> ( Rc<FunctionData<'ctx>> );
+
+impl<'ctx> Deref for Function<'ctx> {
+  type Target = FunctionData<'ctx>;
+
+  fn deref(&self) -> &Self::Target {
+    &self.0
+  }
+}
+
 impl<'ctx> Function<'ctx> {
   pub fn new(fn_value: FunctionValue<'ctx>, name: Option<String>, args: Vec<(String, AnyType<'ctx>)>, return_type: AnyType<'ctx>) -> Self {
-    Function {
+    Function(Rc::new(FunctionData {
       fn_value,
       name,
       args,
       return_type,
-    }
+    }))
   }
 
   pub fn name(&self) -> Option<&str> {
@@ -42,7 +57,7 @@ impl<'ctx> Function<'ctx> {
 
   pub fn call(&self, env: &Environment<'ctx>, args: &[AnyValue<'ctx>]) -> AnyValue<'ctx> {
     // Get the function arguments
-    let mut fn_args = vec![];
+    let mut fn_args: Vec<BasicMetadataValueEnum> = vec![];
 
     // Check if the number of arguments is correct
     if args.len() != self.args.len() {
@@ -52,7 +67,7 @@ impl<'ctx> Function<'ctx> {
     // Check if the arguments types are correct and convert them
     for (arg, (_, type_)) in args.iter().zip(self.args.iter()) {
       let arg = arg.silent_cast(env, type_).expect(format!("Failed to cast argument `{}` to `{}`", arg, type_).as_str());
-      fn_args.push(arg.into_llvm_basic_value().into());
+      fn_args.push(arg.llvm_basic_value(env).unwrap().into());
     }
 
     // Call the function
@@ -63,7 +78,47 @@ impl<'ctx> Function<'ctx> {
       AnyValue::Null
     } else {
       let result = result.left().unwrap();
-      AnyValue::from_basic_value(self.return_type(), result)
+      self.return_type.create_value(env, result.into())
+    }
+  }
+}
+
+impl<'ctx> Value<'ctx> for Function<'ctx> {
+  type Type = FunctionType;
+  type LLVMValue = inkwell::values::FunctionValue<'ctx>;
+
+  fn allocate(&self, env: &Environment<'ctx>) -> PointerValue<'ctx> {
+    todo!()
+  }
+
+  fn store(&self, env: &Environment<'ctx>, ptr: PointerValue<'ctx>) {
+    todo!()
+  }
+
+  fn get_type(&self) -> AnyType<'ctx> {
+    todo!()
+  }
+
+  fn llvm_value(&self, env: &Environment<'ctx>) -> Self::LLVMValue {
+    self.fn_value
+  }
+
+  fn llvm_basic_value(&self, env: &Environment<'ctx>) -> Option<BasicValueEnum<'ctx>> {
+    None
+  }
+}
+
+impl<'ctx> Into<AnyValue<'ctx>> for Function<'ctx> {
+  fn into(self) -> AnyValue<'ctx> {
+    AnyValue::Function(self)
+  }
+}
+
+impl<'ctx> From<AnyValue<'ctx>> for Function<'ctx> {
+  fn from(value: AnyValue<'ctx>) -> Self {
+    match value {
+      AnyValue::Function(value) => value,
+      _ => panic!("Invalid type"),
     }
   }
 }
