@@ -22,7 +22,7 @@ impl<'ctx> Type<'ctx> for FunctionType {
     None
   }
 
-  fn create_value(env: &Environment, value: Self::LLVMValue) -> Self::Value {
+  fn create_value(&self, env: &Environment<'ctx>, value: Self::LLVMValue) -> Self::Value {
     todo!()
   }
 }

@@ -14,12 +14,14 @@ mod any_type;
 mod state;
 mod environment;
 mod gc;
+mod operator;
 
 pub use types::AnyType;
 pub use values::AnyValue;
 pub use state::{State, StateType};
 pub use environment::Environment;
 pub use gc::GarbageCollector;
+pub use operator::Operator;
 
 use fn_print::fn_print;
 use fn_main::fn_main;

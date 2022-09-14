@@ -1,17 +1,21 @@
 use crate::nscript::AnyType;
+use crate::nscript::values::{Class, Property};
 use crate::parser;
 
-use crate::{nscript::{AnyValue, Environment, Class, Property}};
+use crate::{nscript::{AnyValue, Environment}};
 
 pub fn class<'ctx>(env: &Environment<'ctx>, name: &String, properties: &[parser::Property]) -> AnyValue<'ctx> {
   
-  let props = properties.iter().map(|prop| {
-    Property {
+  let mut props = Vec::new();
+  for prop in properties {
+    let property = Property {
       name: prop.name.clone(),
       type_: AnyType::from_string(env, prop.type_.as_str()).expect(format!("Failed to get type `{:?}`", prop.type_).as_str()),
       modifiers: prop.modifiers.clone(),
-    }
-  }).collect();
+    };
+
+    props.push(property);
+  }
   
   let class = Class::new(
     env,

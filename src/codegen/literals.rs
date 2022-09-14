@@ -1,11 +1,11 @@
-use crate::nscript::{AnyValue, Environment};
+use crate::nscript::{AnyValue, Environment, types::{IntegerType, NumberType, BooleanType}};
 
 pub fn integer<'ctx>(env: &Environment<'ctx>, value: i32) -> AnyValue<'ctx> {
-  AnyValue::Integer(env.borrow().context.i32_type().const_int(value as u64, false))
+  IntegerType.create_const(env, value).into()
 }
 
 pub fn number<'ctx>(env: &Environment<'ctx>, value: f64) -> AnyValue<'ctx> {
-  AnyValue::Number(env.borrow().context.f64_type().const_float(value))
+  NumberType.create_const(env, value).into()
 }
 
 pub fn string<'ctx>(env: &Environment<'ctx>, value: &str) -> AnyValue<'ctx> {
@@ -13,7 +13,7 @@ pub fn string<'ctx>(env: &Environment<'ctx>, value: &str) -> AnyValue<'ctx> {
 }
 
 pub fn boolean<'ctx>(env: &Environment<'ctx>, value: bool) -> AnyValue<'ctx> {
-  AnyValue::Boolean(env.borrow().context.bool_type().const_int(value as u64, false))
+  BooleanType.create_const(env, value).into()
 }
 
 pub fn null<'ctx>(_env: &Environment<'ctx>) -> AnyValue<'ctx> {

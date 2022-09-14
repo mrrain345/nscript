@@ -5,7 +5,9 @@ mod boolean_type;
 mod null_type;
 mod object_type;
 mod function_type;
+mod ref_type;
 mod any_type;
+mod operations;
 
 pub use type_::Type;
 pub use integer_type::IntegerType;
@@ -14,4 +16,5 @@ pub use boolean_type::BooleanType;
 pub use null_type::NullType;
 pub use object_type::ObjectType;
 pub use function_type::FunctionType;
+pub use ref_type::RefType;
 pub use any_type::AnyType;

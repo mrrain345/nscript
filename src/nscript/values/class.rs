@@ -7,7 +7,7 @@ use crate::nscript::{Environment, AnyType, types::ObjectType, Type};
 use super::{value::Value, AnyValue};
 
 #[derive(Debug, PartialEq)]
-struct ClassData<'ctx> {
+pub struct ClassData<'ctx> {
   name: Option<String>,
   struct_type: StructType<'ctx>,
   properties: Vec<Property<'ctx>>,

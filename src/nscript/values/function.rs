@@ -7,7 +7,7 @@ use crate::nscript::{AnyType, Environment, types::FunctionType};
 use super::{value::Value, AnyValue};
 
 #[derive(Debug, PartialEq)]
-struct FunctionData<'ctx> {
+pub struct FunctionData<'ctx> {
   fn_value: FunctionValue<'ctx>,
   name: Option<String>,
   args: Vec<(String, AnyType<'ctx>)>,
@@ -66,7 +66,12 @@ impl<'ctx> Function<'ctx> {
 
     // Check if the arguments types are correct and convert them
     for (arg, (_, type_)) in args.iter().zip(self.args.iter()) {
-      let arg = arg.silent_cast(env, type_).expect(format!("Failed to cast argument `{}` to `{}`", arg, type_).as_str());
+      let arg = if arg.get_type() != *type_ {
+        arg.silent_cast(env, type_).expect(format!("Failed to cast argument `{}` to `{}`", arg, type_).as_str())
+      } else {
+        arg.clone()
+      };
+
       fn_args.push(arg.llvm_basic_value(env).unwrap().into());
     }
 

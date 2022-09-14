@@ -1,8 +1,8 @@
-use crate::{nscript::{AnyValue, Environment, Object, AnyType}, parser::PropertyValue};
+use crate::{nscript::{AnyValue, Environment, AnyType, values::{Object, Class}}, parser::PropertyValue};
 
 pub fn object<'ctx>(env: &Environment<'ctx>, class_name: &str, properties: &[PropertyValue]) -> AnyValue<'ctx> {
   // Get the object's Class
-  let class = env.get_class(class_name).expect("Class not found").into_class();
+  let class: Class = env.get_class(class_name).expect("Class not found").into();
 
   // Set the object's properties
   let mut props = Vec::with_capacity(properties.len());
@@ -26,8 +26,5 @@ pub fn object<'ctx>(env: &Environment<'ctx>, class_name: &str, properties: &[Pro
   }
 
   // Create the object
-  let object = Object::new(env, class, props);
-
-  // Return the object
-  AnyValue::Object(Box::new(object))
+  Object::new(env, class, props).into()
 }

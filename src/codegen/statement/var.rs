@@ -4,11 +4,11 @@ pub fn var<'ctx>(env: &Environment<'ctx>, name: &String, type_: &Option<String>,
   let value = value.as_ref().unwrap().codegen(env).deref(env);
 
   // If value is a pointer to a primitive type, dereference it
-  let value = if value.is_primitive_ptr() {
-    value.deref(env)
-  } else {
-    value
-  };
+  // let value = if value.is_primitive_ptr() {
+  //   value.deref(env)
+  // } else {
+  //   value
+  // };
 
   // Check if the type is compatible with the value
   let value = if let Some(type_) = type_ {

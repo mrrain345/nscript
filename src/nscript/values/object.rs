@@ -11,7 +11,7 @@ pub struct Object<'ctx> {
 }
 
 impl<'ctx> Object<'ctx> {
-  pub fn new(env: &Environment<'ctx>, class: &'ctx Class<'ctx>, properties: Vec<AnyValue<'ctx>>) -> Self {
+  pub fn new(env: &Environment<'ctx>, class: Class<'ctx>, properties: Vec<AnyValue<'ctx>>) -> Self {
     
     // Create the struct
     let struct_ptr = env.borrow_mut().builder.build_malloc(class.struct_type(), class.name_or_default()).unwrap();
@@ -48,7 +48,7 @@ impl<'ctx> Object<'ctx> {
 
     // get property
     let propPtr = env.borrow_mut().builder.build_struct_gep(self.struct_ptr, index as u32, name).unwrap();
-    let propType = self.class.get_property(index).type_;
+    let propType = self.class.get_property(index).type_.clone();
 
     // set property
     let propValue = value.silent_cast(env, &propType).unwrap_or_else(|| panic!("Value {value} is not castable to {propType}"));
@@ -61,7 +61,7 @@ impl<'ctx> Object<'ctx> {
 
     // get property
     let propPtr = env.borrow_mut().builder.build_struct_gep(self.struct_ptr, index as u32, name).unwrap();
-    let propType = self.class.get_property(index).type_;
+    let propType = self.class.get_property(index).type_.clone();
     
     let prop = env.borrow_mut().builder.build_load(propPtr, name);
     propType.create_value(env, prop.into())

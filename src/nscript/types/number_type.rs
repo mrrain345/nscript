@@ -9,6 +9,14 @@ use super::type_::Type;
 #[derive(Clone, Copy)]
 pub struct NumberType;
 
+impl<'ctx> NumberType {
+  pub fn create_const(&self, env: &Environment<'ctx>, value: f64) -> Number<'ctx> {
+    Number {
+      value: env.borrow().context.f64_type().const_float(value)
+    }
+  }
+}
+
 impl<'ctx> Type<'ctx> for NumberType {
   type LLVMType = FloatType<'ctx>;
   type LLVMValue = FloatValue<'ctx>;
@@ -22,7 +30,7 @@ impl<'ctx> Type<'ctx> for NumberType {
     Some(env.borrow().context.f64_type().into())
   }
 
-  fn create_value(env: &Environment, value: Self::LLVMValue) -> Self::Value {
+  fn create_value(&self, env: &Environment<'ctx>, value: Self::LLVMValue) -> Self::Value {
     Number { value }
   }
 }

@@ -27,7 +27,7 @@ pub fn if_<'ctx>(env: &Environment<'ctx>, condition: &Expression, then: &[Expres
   {
     let mut env = env.borrow_mut();
     // Create the if statement
-    env.builder.build_conditional_branch(condition.into_boolean(), then_block, else_block.unwrap_or(merge_block));
+    env.builder.build_conditional_branch(condition.into_boolean().unwrap().value, then_block, else_block.unwrap_or(merge_block));
 
     // Emit the then block
     env.state.push_scope();

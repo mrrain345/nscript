@@ -94,18 +94,18 @@ impl<'ctx> AnyValue<'ctx> {
     }
   }
 
-  pub fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
-    match self {
-      AnyValue::Integer(value) => value.op_add(env, other),
-      AnyValue::Number(value) => value.op_add(env, other),
-      AnyValue::Boolean(value) => value.op_add(env, other),
-      AnyValue::Null => Null.op_add(env, other),
-      AnyValue::Function(value) => value.op_add(env, other),
-      AnyValue::Object(value) => value.op_add(env, other),
-      AnyValue::Class(value) => value.op_add(env, other),
-      AnyValue::Ref(value) => value.op_add(env, other),
-    }
-  }
+  // pub fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+  //   match self {
+  //     AnyValue::Integer(value) => value.op_add(env, other),
+  //     AnyValue::Number(value) => value.op_add(env, other),
+  //     AnyValue::Boolean(value) => value.op_add(env, other),
+  //     AnyValue::Null => Null.op_add(env, other),
+  //     AnyValue::Function(value) => value.op_add(env, other),
+  //     AnyValue::Object(value) => value.op_add(env, other),
+  //     AnyValue::Class(value) => value.op_add(env, other),
+  //     AnyValue::Ref(value) => value.op_add(env, other),
+  //   }
+  // }
 
   pub fn llvm_value(&self, env: &Environment<'ctx>) -> AnyValueEnum<'ctx> {
     match self {
@@ -131,6 +131,72 @@ impl<'ctx> AnyValue<'ctx> {
       AnyValue::Class(value) => value.llvm_basic_value(env),
       AnyValue::Ref(value) => value.llvm_basic_value(env),
     }
+  }
+
+
+  pub fn is_integer(&self) -> bool {
+    matches!(self, AnyValue::Integer(_))
+  }
+
+  pub fn is_number(&self) -> bool {
+    matches!(self, AnyValue::Number(_))
+  }
+
+  pub fn is_boolean(&self) -> bool {
+    matches!(self, AnyValue::Boolean(_))
+  }
+
+  pub fn is_null(&self) -> bool {
+    matches!(self, AnyValue::Null)
+  }
+
+  pub fn is_function(&self) -> bool {
+    matches!(self, AnyValue::Function(_))
+  }
+
+  pub fn is_object(&self) -> bool {
+    matches!(self, AnyValue::Object(_))
+  }
+
+  pub fn is_class(&self) -> bool {
+    matches!(self, AnyValue::Class(_))
+  }
+
+  pub fn is_ref(&self) -> bool {
+    matches!(self, AnyValue::Ref(_))
+  }
+
+
+  pub fn into_integer(self) -> Option<Integer<'ctx>> {
+    if let AnyValue::Integer(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_number(self) -> Option<Number<'ctx>> {
+    if let AnyValue::Number(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_boolean(self) -> Option<Boolean<'ctx>> {
+    if let AnyValue::Boolean(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_null(self) -> Option<Null> {
+    if let AnyValue::Null = self { Some(Null) } else { None }
+  }
+
+  pub fn into_function(self) -> Option<Function<'ctx>> {
+    if let AnyValue::Function(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_object(self) -> Option<Object<'ctx>> {
+    if let AnyValue::Object(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_class(self) -> Option<Class<'ctx>> {
+    if let AnyValue::Class(value) = self { Some(value) } else { None }
+  }
+
+  pub fn into_ref(self) -> Option<Ref<'ctx>> {
+    if let AnyValue::Ref(value) = self { Some(value) } else { None }
   }
 }
 

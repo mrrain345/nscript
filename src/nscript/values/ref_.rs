@@ -1,6 +1,6 @@
 use inkwell::{values::PointerValue, types::{AnyTypeEnum, BasicTypeEnum}};
 
-use crate::nscript::{Environment, AnyType, types::NullType, Type};
+use crate::nscript::{Environment, AnyType, types::{NullType, RefType}, Type};
 
 use super::{value::Value, AnyValue};
 
@@ -36,7 +36,10 @@ impl<'ctx> Value<'ctx> for Ref<'ctx> {
   }
 
   fn get_type(&self) -> AnyType<'ctx> {
-    todo!()
+    let ref_ = RefType {
+      type_: Box::new(self.type_.clone())
+    };
+    AnyType::Ref(ref_)
   }
 
   fn llvm_value(&self, env: &Environment<'ctx>) -> Self::LLVMValue {

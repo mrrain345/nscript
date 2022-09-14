@@ -12,7 +12,6 @@ mod parser;
 mod tokenizer;
 mod nscript;
 mod codegen;
-pub mod append_list;
 
 fn main() {
   // Enable better panic.

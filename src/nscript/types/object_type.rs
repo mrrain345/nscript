@@ -24,7 +24,7 @@ impl<'ctx> Type<'ctx> for ObjectType<'ctx> {
     Some(self.class.ptr_type().into())
   }
 
-  fn create_value(env: &Environment, value: Self::LLVMValue) -> Self::Value {
+  fn create_value(&self, env: &Environment<'ctx>, value: Self::LLVMValue) -> Self::Value {
     todo!()
   }
 }

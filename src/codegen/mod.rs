@@ -1,12 +1,9 @@
 use crate::{nscript::{Environment, AnyValue}, parser::Expression};
 
-mod arithmetic;
-mod assignment;
-mod bitwise;
-mod comparison;
-mod logical;
-mod statement;
+mod operators;
+use operators::{arithmetic, assignment, bitwise, comparison, logical};
 
+mod statement;
 mod call;
 mod literals;
 mod object;

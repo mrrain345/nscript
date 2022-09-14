@@ -22,14 +22,14 @@ pub trait Value<'ctx>: Debug + Clone + Into<AnyValue<'ctx>> + From<AnyValue<'ctx
 
   // Arithmetic operators
 
-  fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_sub(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_mul(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_div(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_modulo(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_power(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_plus(&self, env: &Environment<'ctx>) -> Option<AnyValue<'ctx>> { None }
-  fn op_minus(&self, env: &Environment<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_sub(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_mul(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_div(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_modulo(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_power(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_plus(&self, env: &Environment<'ctx>) -> Option<AnyValue<'ctx>> { None }
+  // fn op_minus(&self, env: &Environment<'ctx>) -> Option<AnyValue<'ctx>> { None }
 
   // Types
 

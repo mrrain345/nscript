@@ -15,7 +15,7 @@ pub use number::Number;
 pub use boolean::Boolean;
 pub use object::Object;
 pub use function::Function;
-pub use class::Class;
+pub use class::{Class, Property};
 pub use null::Null;
 pub use ref_::Ref;
 pub use any_value::AnyValue;

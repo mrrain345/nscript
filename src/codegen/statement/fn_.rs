@@ -1,6 +1,8 @@
+use std::ops::Deref;
+
 use inkwell::types::AnyTypeEnum;
 
-use crate::{parser::Expression, nscript::{AnyValue, Environment, Function, AnyType}};
+use crate::{parser::Expression, nscript::{AnyValue, Environment, AnyType, values::Function}};
 
 pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String)], return_type: &String, body: &[Expression]) -> AnyValue<'ctx> {
   // Get the return type
@@ -9,12 +11,12 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
   
   // Get the parameters types
   let arg_types = args.iter().map(|(_, type_)| {
-    type_.into_llvm_basic_type(env)
+    type_.llvm_basic_type(env)
       .expect(format!("Parser error: Invalid parameter type `{type_:?}`").as_str()).into()
   }).collect::<Vec<_>>();
 
   // Create the function signature
-  let fn_type = match return_type.into_llvm_type(env) {
+  let fn_type = match return_type.llvm_type(env) {
     AnyTypeEnum::ArrayType(type_) => type_.fn_type(&arg_types[..], false),
     AnyTypeEnum::FloatType(type_) => type_.fn_type(&arg_types[..], false),
     AnyTypeEnum::IntType(type_) => type_.fn_type(&arg_types[..], false),
@@ -27,32 +29,36 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
   
   let previous_block = env.current_block();
 
-  let fn_ = {
-    let mut env = env.borrow_mut();
-    
-    // Create the function
-    let function_value = env.module.add_function(name, fn_type, None);
-    let function_block = env.context.append_basic_block(function_value, "entry");
-    env.set_current_block(function_block);
-    let function = Function::new(function_value, Some(name.clone()), args.clone(), return_type);
+  let function = {
+    let (function_value, function) = {
+      let mut env = env.borrow_mut();
+      
+      // Create the function
+      let function_value = env.module.add_function(name, fn_type, None);
+      let function_block = env.context.append_basic_block(function_value, "entry");
+      env.set_current_block(function_block);
+      let function = Function::new(function_value, Some(name.clone()), args.clone(), return_type.clone());
 
-    // Add the function to the environment
-    let fn_ = env.add_function(name.clone(), function)
-      .expect("Parser error: Function already exists");
+      // Add the function to the environment
+      let function = env.add_function(name.clone(), function)
+        .expect("Parser error: Function already exists");
 
-    // Create the function scope
-    env.state.push_scope();
-    env.builder.position_at_end(function_block);
+      // Create the function scope
+      env.state.push_scope();
+      env.builder.position_at_end(function_block);
+      
+      (function_value, function)
+    };
 
     // Add the parameters to the environment
-    function_value.get_params()
+    function.function_value().get_params()
       .iter()
       .zip(args.iter())
       .for_each(|(param, (name, type_))| {
-        env.add_label(name.clone(), AnyValue::from_basic_value(type_, *param));
+        env.add_label(name.clone(), type_.create_value(env, (*param).into()));
       });
 
-    fn_
+    function
   };
 
   // Compile the function body
@@ -75,5 +81,5 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
   }
 
   // Return the function
-  AnyValue::Fn(fn_)
+  AnyValue::Function(function)
 }

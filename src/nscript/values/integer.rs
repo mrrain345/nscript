@@ -37,15 +37,15 @@ impl<'ctx> Value<'ctx> for Integer<'ctx> {
 
   // Arithmetic
 
-  fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
-    match other {
-      AnyValue::Integer(value) => {
-        let val = env.borrow_mut().builder.build_int_add(self.value, value.value, "add");
-        Some(IntegerType::create_value(env, val).into())
-      },
-      _ => None,
-    }
-  }
+  // fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+  //   match other {
+  //     AnyValue::Integer(value) => {
+  //       let val = env.borrow_mut().builder.build_int_add(self.value, value.value, "add");
+  //       Some(IntegerType.create_value(env, val).into())
+  //     },
+  //     _ => None,
+  //   }
+  // }
 
   // Types
 

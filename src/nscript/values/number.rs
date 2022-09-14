@@ -31,15 +31,15 @@ impl<'ctx> Value<'ctx> for Number<'ctx> {
     }
   }
 
-  fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
-    match other {
-      AnyValue::Number(value) => {
-        let val = env.borrow_mut().builder.build_float_add(self.value, value.value, "add");
-        Some(NumberType::create_value(env, val).into())
-      },
-      _ => None,
-    }
-  }
+  // fn op_add(&self, env: &Environment<'ctx>, other: &AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+  //   match other {
+  //     AnyValue::Number(value) => {
+  //       let val = env.borrow_mut().builder.build_float_add(self.value, value.value, "add");
+  //       Some(NumberType.create_value(env, val).into())
+  //     },
+  //     _ => None,
+  //   }
+  // }
 
   fn get_type(&self) -> AnyType<'ctx> {
     AnyType::Number
