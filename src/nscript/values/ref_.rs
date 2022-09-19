@@ -42,6 +42,14 @@ impl<'ctx> Value<'ctx> for Ref<'ctx> {
     AnyType::Ref(ref_)
   }
 
+  fn silent_cast(&self, env: &Environment<'ctx>, type_: &AnyType) -> Option<AnyValue<'ctx>> {
+    if *type_ == self.type_ {
+      Some(self.deref(env))
+    } else {
+      None
+    }
+  }
+
   fn llvm_value(&self, env: &Environment<'ctx>) -> Self::LLVMValue {
     self.ptr
   }

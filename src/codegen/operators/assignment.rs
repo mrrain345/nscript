@@ -6,7 +6,12 @@ pub fn assign<'ctx>(env: &Environment<'ctx>, ptr: &Expression, value: &Expressio
 
   let ref_ = ptr.into_ref().unwrap();
 
-  let value = value.silent_cast(env, &ref_.type_).unwrap();
+  let value = if value.get_type() != ref_.type_ {
+    value.silent_cast(env, &ref_.type_).unwrap()
+  } else {
+    value
+  };
+  
   value.store(env, ref_.ptr);
 
   // match value {
