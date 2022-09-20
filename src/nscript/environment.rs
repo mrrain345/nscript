@@ -2,7 +2,7 @@ use std::sync::{RwLock, RwLockWriteGuard, RwLockReadGuard};
 
 use inkwell::{context::Context, module::Module, builder::Builder, values::PointerValue, basic_block::BasicBlock};
 
-use super::{state::State, StateType, AnyType, GarbageCollector, values::{AnyValue, Function, Class, Ref}};
+use super::{state::State, AnyType, GarbageCollector, values::{AnyValue, Function, Class, Ref}};
 
 #[derive(Debug)]
 pub struct EnvironmentData<'ctx> {
@@ -41,172 +41,174 @@ impl<'ctx> Environment<'ctx> {
 
   /// Get current block
   pub fn current_block(&self) -> BasicBlock<'ctx> {
-    let env = self.0.read().unwrap();
-    env.state.current_block()
+    self.borrow().state.current_block()
   }
 
   /// Set current block
   pub fn set_current_block(&self, block: BasicBlock<'ctx>) {
-    let mut env = self.0.write().unwrap();
-    env.state.set_current_block(block);
+    self.borrow_mut().state.set_current_block(block);
   }
 
-  // Labels
-
-  /// Gets the value of the label from any scope
-  pub fn get_label(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    let env = self.0.read().unwrap();
-    env.state.get(name, Some(StateType::Label)).map(|(value, ..)| value)
+  /// Gets the value from any scope
+  pub fn get(&self, name: &str) -> Option<AnyValue<'ctx>> {
+    self.borrow().state.get(name)
   }
 
-  /// Adds a new label to the topmost scope
-  pub fn add_label(&self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.add(name, value, StateType::Label)
+  /// Adds a new value to the topmost scope
+  pub fn add(&self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+    self.borrow_mut().state.add(name, value)
   }
 
-  // Variables
-
-  /// Gets the value of the variable from any scope
-  pub fn get_variable(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    let env = self.0.read().unwrap();
-    env.state.get(name, Some(StateType::Variable)).map(|(value, ..)| value)
+  /// Changes the value from any scope
+  pub fn set(&self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+    self.borrow_mut().state.set(name, value)
   }
 
-  /// Adds a new variable to the topmost scope
-  pub fn add_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.add(name, Ref::new(type_, ptr).into(), StateType::Variable)
-  }
+//   // Labels
 
-  /// Changes the value of the variable from any scope
-  pub fn set_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.set(name, Ref::new(type_, ptr).into(), StateType::Variable)
-  }
+//   /// Gets the value of the label from any scope
+//   pub fn get_label(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.borrow().state.get(name)
+//   }
 
-  // Functions
+//   /// Adds a new label to the topmost scope
+//   pub fn add_label(&self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.borrow_mut().state.add(name, value)
+//   }
 
-  /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
-    let env = self.0.read().unwrap();
-    env.state.get(name, Some(StateType::Function)).map(|(value, ..)| value)
-      .map(|value| value.into())
-  }
+//   // Variables
 
-  /// Adds a new function to the topmost scope
-  pub fn add_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.add(name.clone(), AnyValue::Function(function), StateType::Function)
-      .map(|value| value.into())
-  }
+//   /// Gets the value of the variable from any scope
+//   pub fn get_variable(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.borrow().state.get(name)
+//   }
 
-  /// Changes the value of the function from any scope
-  pub fn set_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.set(name.clone(), AnyValue::Function(function), StateType::Function)
-      .map(|value| value.into())
-  }
+//   /// Adds a new variable to the topmost scope
+//   pub fn add_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.borrow_mut().state.add(name, Ref::new(type_, ptr).into())
+//   }
 
-  // Classes
+//   /// Changes the value of the variable from any scope
+//   pub fn set_variable(&self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.borrow_mut().state.set(name, Ref::new(type_, ptr).into())
+//   }
 
-  /// Gets the class from any scope
-  pub fn get_class(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    let env = self.0.read().unwrap();
-    env.state.get(name, Some(StateType::Class)).map(|(value, ..)| value)
-  }
+//   // Functions
 
-  /// Adds a new class to the topmost scope
-  pub fn add_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.add(name.clone(), AnyValue::Class(class), StateType::Class)
-  }
+//   /// Gets the function from any scope
+//   pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
+//     self.borrow().state.get(name)
+//       .map(|value| value.into())
+//   }
 
-  /// Changes the value of the class from any scope
-  pub fn set_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    let mut env = self.0.write().unwrap();
-    env.state.set(name.clone(), AnyValue::Class(class), StateType::Class)
-  }
-}
+//   /// Adds a new function to the topmost scope
+//   pub fn add_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+//     self.borrow_mut().state.add(name.clone(), AnyValue::Function(function))
+//       .map(|value| value.into())
+//   }
+
+//   /// Changes the value of the function from any scope
+//   pub fn set_function(&self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+//     self.borrow_mut().state.set(name.clone(), AnyValue::Function(function))
+//       .map(|value| value.into())
+//   }
+
+//   // Classes
+
+//   /// Gets the class from any scope
+//   pub fn get_class(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.borrow().state.get(name)
+//   }
+
+//   /// Adds a new class to the topmost scope
+//   pub fn add_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.borrow_mut().state.add(name.clone(), AnyValue::Class(class))
+//   }
+
+//   /// Changes the value of the class from any scope
+//   pub fn set_class(&self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.borrow_mut().state.set(name.clone(), AnyValue::Class(class))
+//   }
+// }
 
 
-impl<'ctx> EnvironmentData<'ctx> {
+// impl<'ctx> EnvironmentData<'ctx> {
   
-  // Current block
+//   // Current block
 
-  /// Get current block
-  pub fn current_block(&self) -> BasicBlock<'ctx> {
-    self.state.current_block()
-  }
+//   /// Get current block
+//   pub fn current_block(&self) -> BasicBlock<'ctx> {
+//     self.state.current_block()
+//   }
 
-  /// Set current block
-  pub fn set_current_block(&mut self, block: BasicBlock<'ctx>) {
-    self.state.set_current_block(block);
-  }
+//   /// Set current block
+//   pub fn set_current_block(&mut self, block: BasicBlock<'ctx>) {
+//     self.state.set_current_block(block);
+//   }
 
-  // Labels
+//   // Labels
 
-  /// Gets the value of the label from any scope
-  pub fn get_label(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    self.state.get(name, Some(StateType::Label)).map(|(value, ..)| value)
-  }
+//   /// Gets the value of the label from any scope
+//   pub fn get_label(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.state.get(name)
+//   }
 
-  /// Adds a new label to the topmost scope
-  pub fn add_label(&mut self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.add(name, value, StateType::Label)
-  }
+//   /// Adds a new label to the topmost scope
+//   pub fn add_label(&mut self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.state.add(name, value)
+//   }
 
-  // Variables
+//   // Variables
 
-  /// Gets the value of the variable from any scope
-  pub fn get_variable(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    self.state.get(name, Some(StateType::Variable)).map(|(value, ..)| value)
-  }
+//   /// Gets the value of the variable from any scope
+//   pub fn get_variable(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.state.get(name)
+//   }
 
-  /// Adds a new variable to the topmost scope
-  pub fn add_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.add(name, Ref::new(type_, ptr).into(), StateType::Variable)
-  }
+//   /// Adds a new variable to the topmost scope
+//   pub fn add_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.state.add(name, Ref::new(type_, ptr).into())
+//   }
 
-  /// Changes the value of the variable from any scope
-  pub fn set_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.set(name, Ref::new(type_, ptr).into(), StateType::Variable)
-  }
+//   /// Changes the value of the variable from any scope
+//   pub fn set_variable(&mut self, name: String, ptr: PointerValue<'ctx>, type_: AnyType<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.state.set(name, Ref::new(type_, ptr).into())
+//   }
 
-  // Functions
+//   // Functions
 
-  /// Gets the function from any scope
-  pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
-    self.state.get(name, Some(StateType::Function)).map(|(value, ..)| value)
-      .map(|value| value.into())
-  }
+//   /// Gets the function from any scope
+//   pub fn get_function(&self, name: &str) -> Option<Function<'ctx>> {
+//     self.state.get(name)
+//       .map(|value| value.into())
+//   }
 
-  /// Adds a new function to the topmost scope
-  pub fn add_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
-    self.state.add(name.clone(), AnyValue::Function(function), StateType::Function)
-      .map(|value| value.into())
-  }
+//   /// Adds a new function to the topmost scope
+//   pub fn add_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+//     self.state.add(name.clone(), AnyValue::Function(function))
+//       .map(|value| value.into())
+//   }
 
-  /// Changes the value of the function from any scope
-  pub fn set_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
-    self.state.set(name.clone(), AnyValue::Function(function), StateType::Function)
-      .map(|value| value.into())
-  }
+//   /// Changes the value of the function from any scope
+//   pub fn set_function(&mut self, name: String, function: Function<'ctx>) -> Option<Function<'ctx>> {
+//     self.state.set(name.clone(), AnyValue::Function(function))
+//       .map(|value| value.into())
+//   }
 
-  // Classes
+//   // Classes
 
-  /// Gets the class from any scope
-  pub fn get_class(&self, name: &str) -> Option<AnyValue<'ctx>> {
-    self.state.get(name, Some(StateType::Class)).map(|(value, ..)| value)
-  }
+//   /// Gets the class from any scope
+//   pub fn get_class(&self, name: &str) -> Option<AnyValue<'ctx>> {
+//     self.state.get(name)
+//   }
 
-  /// Adds a new class to the topmost scope
-  pub fn add_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.add(name.clone(), AnyValue::Class(class), StateType::Class)
-  }
+//   /// Adds a new class to the topmost scope
+//   pub fn add_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.state.add(name.clone(), AnyValue::Class(class))
+//   }
 
-  /// Changes the value of the class from any scope
-  pub fn set_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
-    self.state.set(name.clone(), AnyValue::Class(class), StateType::Class)
-  }
+//   /// Changes the value of the class from any scope
+//   pub fn set_class(&mut self, name: String, class: Class<'ctx>) -> Option<AnyValue<'ctx>> {
+//     self.state.set(name.clone(), AnyValue::Class(class))
+//   }
 }

@@ -4,19 +4,9 @@ use inkwell::basic_block::BasicBlock;
 
 use super::values::AnyValue;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum StateType {
-  Label,
-  Variable,
-  Function,
-  Class,
-}
-
-pub type StateValue<'ctx> = (AnyValue<'ctx>, StateType);
-
 #[derive(Debug)]
 pub struct State<'ctx> {
-  scopes: Vec<HashMap<String, StateValue<'ctx>>>,
+  scopes: Vec<HashMap<String, AnyValue<'ctx>>>,
   current_block: Option<BasicBlock<'ctx>>,
 }
 
@@ -41,12 +31,12 @@ impl<'ctx> State<'ctx> {
   }
 
   /// Returns the topmost scope
-  pub fn scope(&self) -> &HashMap<String, StateValue<'ctx>> {
+  pub fn scope(&self) -> &HashMap<String, AnyValue<'ctx>> {
     self.scopes.last().unwrap()
   }
 
   /// Returns the topmost scope mutably
-  pub fn scope_mut(&mut self) -> &mut HashMap<String, StateValue<'ctx>> {
+  pub fn scope_mut(&mut self) -> &mut HashMap<String, AnyValue<'ctx>> {
     self.scopes.last_mut().unwrap()
   }
 
@@ -65,7 +55,7 @@ impl<'ctx> State<'ctx> {
   // Get/Add/Set
 
   /// Returns the value of the element from any scope
-  pub fn get(&self, name: &str, type_: Option<StateType>) -> Option<StateValue<'ctx>> {
+  pub fn get(&self, name: &str) -> Option<AnyValue<'ctx>> {
     // Find the first scope that contains the element
     let value = self.scopes.iter().rev()
       .find(|scope| scope.contains_key(name))
@@ -73,27 +63,23 @@ impl<'ctx> State<'ctx> {
 
     // If the element doesn't exist, return None
     if value.is_none() { return None; }
-    let value = value.unwrap();
 
-    // If type is not specified, return the value
-    if type_.is_none() { return Some(value.clone()); }
-    // If type is specified, check if it is the same
-    if value.1 == type_.unwrap() { return Some(value.clone()); }
-    None
+    let value = value.unwrap();
+    Some(value.clone())
   }
 
   /// Adds a new element to the topmost scope
-  pub fn add(&mut self, name: String, value: AnyValue<'ctx>, type_: StateType) -> Option<AnyValue<'ctx>> {
+  pub fn add(&mut self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
     // Return if first scope contains the element
     if self.scope().contains_key(&name) { return None; }
 
     // Add the element to the current scope
-    if self.scope_mut().insert(name.clone(), (value.clone(), type_)).is_some() { return None; }
+    if self.scope_mut().insert(name.clone(), value.clone()).is_some() { return None; }
     Some(value)
   }
 
   /// Changes the value of the element from any scope
-  pub fn set(&mut self, name: String, value: AnyValue<'ctx>, type_: StateType) -> Option<AnyValue<'ctx>> {
+  pub fn set(&mut self, name: String, value: AnyValue<'ctx>) -> Option<AnyValue<'ctx>> {
     // Find the first scope that contains the element
     let scope = self.scopes.iter_mut().rev()
       .find(|scope| scope.contains_key(&name));
@@ -103,7 +89,7 @@ impl<'ctx> State<'ctx> {
     let scope = scope.unwrap();
 
     // Set new value in the same scope
-    scope.insert(name, (value.clone(), type_));
+    scope.insert(name, value.clone());
     Some(value)
   }
 }

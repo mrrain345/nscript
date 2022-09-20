@@ -6,17 +6,12 @@ pub fn let_<'ctx>(env: &Environment<'ctx>, name: &String, type_: &Option<String>
   // Check if the type is compatible with the value
   let value = if let Some(type_) = type_ {
     let type_ = AnyType::from_string(env, type_).unwrap();
-
-    if value.get_type() != type_ {
-      value.silent_cast(env, &type_).unwrap()
-    } else {
-      value
-    }
+    value.silent_cast(env, &type_).unwrap()
   } else {
     value
   };
 
   // TODO: Check if type is compatible with value
-  env.add_label(name.into(), value)
+  env.add(name.into(), value)
     .expect(format!("Label `{name}` already exists").as_str())
 }

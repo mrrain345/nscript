@@ -2,7 +2,7 @@ use crate::{nscript::{AnyValue, Environment, AnyType, values::{Object, Class}}, 
 
 pub fn object<'ctx>(env: &Environment<'ctx>, class_name: &str, properties: &[PropertyValue]) -> AnyValue<'ctx> {
   // Get the object's Class
-  let class: Class = env.get_class(class_name).expect("Class not found").into();
+  let class: Class = env.get(class_name).expect("Class not found").into_class().unwrap();
 
   // Set the object's properties
   let mut props = Vec::with_capacity(properties.len());
@@ -21,7 +21,7 @@ pub fn object<'ctx>(env: &Environment<'ctx>, class_name: &str, properties: &[Pro
       value.get_type()
     };
 
-    let value = value.silent_cast(env, &type_).unwrap();
+    let value = value.silent_cast(env, &type_).expect(format!("Invalid cast: Try to cast {value} to {type_}").as_str());
     props.push(value);
   }
 

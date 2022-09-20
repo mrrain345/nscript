@@ -4,22 +4,22 @@ pub fn if_<'ctx>(env: &Environment<'ctx>, condition: &Expression, then: &[Expres
   let condition = condition.codegen(env);
 
   if !condition.is_boolean() && !condition.is_null() {
-    panic!("Parser error: Condition of if statement must be a boolean or null");
+    panic!("Parser error: Condition must be a boolean or null");
   }
   
   // Create the then block
   let function_block = env.current_block();
-  let then_block = env.borrow().context.insert_basic_block_after(function_block, "then");
+  let then_block = env.borrow_mut().context.insert_basic_block_after(function_block, "then");
 
   // Create the else block
   let else_block = if else_.len() != 0 {
-    Some(env.borrow().context.insert_basic_block_after(then_block, "else"))
+    Some(env.borrow_mut().context.insert_basic_block_after(then_block, "else"))
   } else {
     None
   };
 
   // Create the merge block
-  let merge_block = env.borrow().context.insert_basic_block_after(
+  let merge_block = env.borrow_mut().context.insert_basic_block_after(
     else_block.unwrap_or(then_block),
     "merge",
   );

@@ -7,6 +7,7 @@ mod function;
 mod class;
 mod null;
 mod ref_;
+mod type_;
 mod any_value;
 
 pub use value::Value;
@@ -18,4 +19,5 @@ pub use function::Function;
 pub use class::{Class, Property};
 pub use null::Null;
 pub use ref_::Ref;
+pub use type_::Type;
 pub use any_value::AnyValue;

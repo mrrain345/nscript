@@ -18,13 +18,17 @@ mod operator;
 
 pub use types::AnyType;
 pub use values::AnyValue;
-pub use state::{State, StateType};
+pub use state::State;
 pub use environment::Environment;
 pub use gc::GarbageCollector;
 pub use operator::Operator;
 
 use fn_print::fn_print;
 use fn_main::fn_main;
+
+use self::fn_print::print_bool;
+use self::fn_print::print_int;
+use self::fn_print::print_num;
 
 
 pub fn compile<'ctx>(env: &Environment<'ctx>, expressions: &[Expression]) -> JitFunction<'ctx, unsafe extern "C" fn() -> ()> {
@@ -34,11 +38,16 @@ pub fn compile<'ctx>(env: &Environment<'ctx>, expressions: &[Expression]) -> Jit
     .create_jit_execution_engine(OptimizationLevel::None)
     .expect("Failed to create execution engine");
 
-  // Compile functions
-  fn_print(env).expect("Failed to compile `print` function");
+  // Compile print functions
+  let (fn_print_int, fn_print_num, fn_print_bool) = fn_print(env);
+  execution_engine.add_global_mapping(&fn_print_int, print_int as usize);
+  execution_engine.add_global_mapping(&fn_print_num, print_num as usize);
+  execution_engine.add_global_mapping(&fn_print_bool, print_bool as usize);
+
+  // Compile main function
   fn_main(env, expressions).expect("Failed to compile `main` function");
 
-  // Return the main function
+  // Return main function
   unsafe {
     execution_engine.get_function("main").expect("Failed to load `main` function")
   }

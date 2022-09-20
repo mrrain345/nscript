@@ -12,27 +12,20 @@ mod parser;
 mod tokenizer;
 mod nscript;
 mod codegen;
+mod tests;
 
-fn main() {
-  // Enable better panic.
-  better_panic::install();
-
-  // Get the path to the file.
-  let path = match env::args().nth(1) {
-    Some(path) => PathBuf::from(path),
-    None => {
-      eprintln!("Usage: nscript <path>");
-      return;
-    }
-  };
+pub fn run(path: &str) {
+  let path = PathBuf::from(path);
 
   // Get the contents of the file.
-  let script = match std::fs::read_to_string(&path) {
+  let script = match std::fs::read_to_string(path.clone()) {
     Ok(s) => s,
     Err(err) => {
-      let path = 
-      if path.is_absolute() { path }
-      else { env::current_dir().unwrap().join(&path) };
+      let path = if path.is_absolute() {
+        path
+      } else {
+        env::current_dir().unwrap().join(&path)
+      };
     
       let path = path.to_str().unwrap();
 
@@ -65,4 +58,20 @@ fn main() {
     }
     Err(err) => eprintln!("[Parser error] {:?}", &err),
   }
+}
+
+fn main() {
+  // Enable better panic.
+  better_panic::install();
+
+  // Get the path to the file.
+  let path = match env::args().nth(1) {
+    Some(path) => path,
+    None => {
+      eprintln!("Usage: nscript <path>");
+      return;
+    }
+  };
+
+  run(path.as_str());
 }

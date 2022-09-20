@@ -21,7 +21,7 @@ pub fn null<'ctx>(_env: &Environment<'ctx>) -> AnyValue<'ctx> {
 }
 
 pub fn identifier<'ctx>(env: &Environment<'ctx>, name: &str) -> AnyValue<'ctx> {
-  if let Some((value, ..)) = env.borrow_mut().state.get(name, None) {
+  if let Some(value) = env.borrow_mut().state.get(name) {
     value
   } else { panic!("Parser error: label `{name}` not found") }
 }

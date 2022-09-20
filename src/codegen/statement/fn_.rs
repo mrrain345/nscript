@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use inkwell::types::AnyTypeEnum;
 
 use crate::{parser::Expression, nscript::{AnyValue, Environment, AnyType, values::Function}};
@@ -30,24 +28,24 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
   let previous_block = env.current_block();
 
   let function = {
-    let (function_value, function) = {
+    let function = {
       let mut env = env.borrow_mut();
       
       // Create the function
       let function_value = env.module.add_function(name, fn_type, None);
       let function_block = env.context.append_basic_block(function_value, "entry");
-      env.set_current_block(function_block);
+      env.state.set_current_block(function_block);
       let function = Function::new(function_value, Some(name.clone()), args.clone(), return_type.clone());
 
       // Add the function to the environment
-      let function = env.add_function(name.clone(), function)
+      let function = env.state.add(name.clone(), function.into())
         .expect("Parser error: Function already exists");
 
       // Create the function scope
       env.state.push_scope();
       env.builder.position_at_end(function_block);
       
-      (function_value, function)
+      function.into_function().unwrap()
     };
 
     // Add the parameters to the environment
@@ -55,7 +53,7 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
       .iter()
       .zip(args.iter())
       .for_each(|(param, (name, type_))| {
-        env.add_label(name.clone(), type_.create_value(env, (*param).into()));
+        env.add(name.clone(), type_.create_value(env, (*param).into()));
       });
 
     function
@@ -76,7 +74,7 @@ pub fn fn_<'ctx>(env: &Environment<'ctx>, name: &String, args: &[(String, String
 
     // Finish the function
     env.state.pop_scope();
-    env.set_current_block(previous_block);
+    env.state.set_current_block(previous_block);
     env.builder.position_at_end(previous_block);
   }
 

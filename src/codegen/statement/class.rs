@@ -23,6 +23,6 @@ pub fn class<'ctx>(env: &Environment<'ctx>, name: &String, properties: &[parser:
     props,
   );
 
-  env.add_class(name.into(), class)
+  env.add(name.into(), class.into())
     .expect("Class already exists")
 }

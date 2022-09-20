@@ -16,7 +16,7 @@ pub fn fn_main<'ctx>(env: &Environment<'ctx>, expressions: &[Expression]) -> Opt
     
     // Create blocks
     let entry_block = env.context.append_basic_block(function, "entry");
-    env.set_current_block(entry_block);
+    env.state.set_current_block(entry_block);
     
     // --- Entry block ---
     env.builder.position_at_end(entry_block);

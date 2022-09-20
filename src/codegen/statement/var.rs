@@ -1,4 +1,4 @@
-use crate::{parser::Expression, nscript::{AnyValue, AnyType, Environment}};
+use crate::{parser::Expression, nscript::{AnyValue, AnyType, Environment, values::Ref}};
 
 pub fn var<'ctx>(env: &Environment<'ctx>, name: &String, type_: &Option<String>, value: Option<&Expression>) -> AnyValue<'ctx> {
   let value = value.as_ref().unwrap().codegen(env).deref(env);
@@ -45,6 +45,6 @@ pub fn var<'ctx>(env: &Environment<'ctx>, name: &String, type_: &Option<String>,
   //   _ => panic!("Parser error: invalid type `{type_:?}`, value: `{value}`")
   // };
 
-  env.add_variable(name.into(), ptr, value.get_type())
+  env.add(name.into(), Ref::new(value.get_type(), ptr).into())
     .expect(format!("Variable `{name}` already exists").as_str())
 }
